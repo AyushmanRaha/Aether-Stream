@@ -5,7 +5,7 @@
 ---
 
 ### ⚠️ CAUTION: UNDER ACTIVE DEVELOPMENT ⚠️
-> **This project is currently in the MVP (Minimum Viable Product) phase.** > While the core lock-free logic and persistence layer are functional, the API is subject to breaking changes as we move toward the v1.0 "Elite Tier" release. 
+> **This project is currently in the MVP (Minimum Viable Product) phase.** > While the core lock-free logic and persistence layer are functional, the API is subject to breaking changes as we move toward the v1.0 release. 
 > *Not yet recommended for production use.*
 
 ---
