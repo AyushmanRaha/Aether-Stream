@@ -1,0 +1,44 @@
+# --- Build Artifacts ---
+build/
+bin/
+lib/
+out/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+
+# --- Aether-Stream Specific (Persistence & Logs) ---
+*.wal
+*.mmap
+*.log
+data/
+logs/
+
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# --- macOS Specific ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# --- Dependency Managers ---
+vcpkg_installed/
+conan-build/
+conan-release/
+
+# --- Testing & Profiling ---
+gmon.out
+*.gcda
+*.gcno
+*.gcov
