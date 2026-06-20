@@ -58,7 +58,7 @@ Correctness and performance work should be learned separately:
 ## Suggested learning order by project phase
 
 0. Learn Git, repository layout, CMake basics, formatting files, and safe shell scripts.
-1. Learn CMake targets, include paths, compile features, and library organization.
+1. Learn CMake targets, PUBLIC versus PRIVATE include directories, `target_link_libraries`, CTest basics, project options, compiler warnings, examples versus tests, compile features, and library organization. The current Phase 1 test intentionally uses a tiny custom main instead of GoogleTest so the skeleton remains dependency-free.
 2. Learn fixed-width integer types, message schemas, ownership, and binary compatibility.
 3. Learn circular buffers, atomics, acquire/release ordering, and SPSC constraints.
 4. Learn data-race prevention, stress testing, sanitizers, false sharing, and cache alignment.

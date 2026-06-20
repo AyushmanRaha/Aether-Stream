@@ -4,9 +4,9 @@ Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous messag
 
 ## Current status
 
-This repository is currently in **Phase 0: repository baseline and local development foundation**.
+This repository has completed **Phase 1: CMake skeleton and real library target**.
 
-No production-ready broker, SPSC queue, write-ahead log (WAL), benchmarks, or CLI exists yet. The current goal is to keep the repository honest, understandable, and ready for later implementation phases.
+The project now has a real CMake library target, a public version API, a compiled version source file, a smoke example, and one CTest-based version test. It is still an early skeleton: no production-ready broker, SPSC queue, write-ahead log (WAL), benchmarks, or CLI exists yet.
 
 ## What this project will become
 
@@ -22,27 +22,72 @@ Aether-Stream is planned to grow into a C++20 message broker/library and CLI too
 
 ## What exists today
 
-The Phase 0 repository contains:
+The Phase 1 repository contains:
 
-- baseline repository documentation;
-- formatting and editor configuration;
-- a bootstrap script for macOS development checks;
-- a minimal placeholder CMake file.
+- a real CMake project skeleton;
+- the `aether_stream` library target;
+- the `aether::stream` alias target for consumers;
+- a public version header at `include/aether/version.hpp`;
+- a compiled version source at `src/version.cpp`;
+- a smoke example executable that prints the project version;
+- a first CTest test executable for the version API;
+- local scripts for running tests and formatting C++ files;
+- baseline repository documentation, formatting, and editor configuration.
 
 ## What does not exist yet
 
 The repository does **not** currently include:
 
-- a real library target;
-- benchmarks;
-- performance numbers;
-- a persistence layer;
-- a production-ready API.
+- a message model;
+- status or error types;
+- an SPSC ring buffer;
+- WAL or `mmap` persistence;
+- a broker API;
+- a benchmark framework;
+- a CLI toolkit;
+- production readiness or performance claims.
+
+## Build and test
+
+Configure, build, test, and run the smoke example with:
+
+```sh
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON
+cmake --build build/debug
+ctest --test-dir build/debug --output-on-failure
+./build/debug/examples/smoke
+```
+
+The smoke example should print:
+
+```text
+Aether-Stream 0.1.0
+```
+
+You can also use the local test shortcut:
+
+```sh
+./scripts/run_tests.sh
+```
+
+## Formatting
+
+Format C++ source files in known source directories with:
+
+```sh
+./scripts/format_all.sh
+```
+
+Check formatting without modifying files with:
+
+```sh
+./scripts/format_all.sh --check
+```
 
 ## Planned roadmap
 
-0. Repo baseline and local environment
-1. CMake skeleton and library target
+0. Repo baseline and local environment — completed
+1. CMake skeleton and library target — completed
 2. Core types and message model
 3. SPSC ring buffer v1
 4. Concurrency correctness hardening
@@ -66,18 +111,6 @@ chmod +x scripts/bootstrap_macos.sh
 ```
 
 The script checks for local tools and creates lightweight build directories. It does not install dependencies automatically.
-
-## Future build commands
-
-The following commands are intended for **Phase 1+** once real CMake targets and tests exist:
-
-```sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/debug
-ctest --test-dir build/debug --output-on-failure
-```
-
-During Phase 0, CMake only configures a placeholder project.
 
 ## Repository docs
 
