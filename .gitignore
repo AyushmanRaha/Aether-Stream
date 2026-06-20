@@ -42,3 +42,7 @@ gmon.out
 *.gcda
 *.gcno
 *.gcov
+compile_commands.json
+CMakeUserPresets.json
+.cache/
+benchmark-results/

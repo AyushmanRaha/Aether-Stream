@@ -1,34 +1,89 @@
-#  Aether-Stream
+# Aether-Stream
 
-> **Ultra-Low Latency Lock-Free Messaging Engine**
+Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous message broker project.
 
----
+## Current status
 
-### ⚠️ CAUTION: UNDER ACTIVE DEVELOPMENT ⚠️
-> **This project is currently in the MVP (Minimum Viable Product) phase.** > While the core lock-free logic and persistence layer are functional, the API is subject to breaking changes as we move toward the v1.0 release. 
-> *Not yet recommended for production use.*
+This repository is currently in **Phase 0: repository baseline and local development foundation**.
 
----
+No production-ready broker, SPSC queue, write-ahead log (WAL), benchmarks, or CLI exists yet. The current goal is to keep the repository honest, understandable, and ready for later implementation phases.
 
-##  Overview
-**Aether-Stream** is a high-performance C++20 middleware designed for sub-microsecond latency environments (High-Frequency Trading, Real-Time Analytics). 
+## What this project will become
 
-Unlike standard message queues that rely on `std::mutex` and OS-level locking, Aether-Stream implements a **Lock-Free Single Producer Single Consumer (SPSC)** architecture. It utilizes **C++20 Atomics** with explicit memory ordering and **Memory-Mapped Files (mmap)** for zero-copy persistence, effectively bypassing standard OS bottlenecks.
+Aether-Stream is planned to grow into a C++20 message broker/library and CLI toolkit with:
 
-##  Key Features (MVP)
-* **Lock-Free SPSC Ring Buffer:** Wait-free communication between threads using `std::atomic` and Acquire/Release semantics.
-* **Hardware Aware:** Cache-line aligned data structures (`alignas(64)`) to prevent False Sharing and CPU cache thrashing.
-* **Zero-Copy Persistence:** Write-Ahead Log (WAL) implemented via `mmap` for direct memory-to-disk journaling.
-* **Modern C++20:** Uses Concepts (`requires`) and smart pointers for type safety.
+- a C++20 library;
+- an SPSC lock-free ring buffer;
+- a clear message model;
+- an optional `mmap`-backed write-ahead log;
+- a broker API;
+- CLI tools;
+- tests, benchmarks, documentation, and CI.
 
-##  Tech Stack
-* **Language:** C++20
-* **Build System:** CMake (3.20+)
-* **Testing:** Google Test (GTest) - *Fetched automatically via CMake*
-* **Platform:** Linux / macOS (POSIX Compliant)
+## What exists today
 
-##  Getting Started
+The Phase 0 repository contains:
 
-### Prerequisites
-* C++ Compiler supporting C++20 (GCC 10+, Clang 12+, MSVC 19.28+)
-* CMake 3.20 or higher
+- baseline repository documentation;
+- formatting and editor configuration;
+- a bootstrap script for macOS development checks;
+- a minimal placeholder CMake file.
+
+## What does not exist yet
+
+The repository does **not** currently include:
+
+- a real library target;
+- benchmarks;
+- performance numbers;
+- a persistence layer;
+- a production-ready API.
+
+## Planned roadmap
+
+0. Repo baseline and local environment
+1. CMake skeleton and library target
+2. Core types and message model
+3. SPSC ring buffer v1
+4. Concurrency correctness hardening
+5. Benchmark framework
+6. Memory-mapped file layer
+7. WAL writer/reader
+8. Broker integration
+9. CLI toolkit and examples
+10. Metrics and diagnostics
+11. CI, sanitizers, packaging
+12. Advanced low-latency upgrades
+13. Documentation and portfolio packaging
+
+## Local setup
+
+For macOS development checks, run:
+
+```sh
+chmod +x scripts/bootstrap_macos.sh
+./scripts/bootstrap_macos.sh
+```
+
+The script checks for local tools and creates lightweight build directories. It does not install dependencies automatically.
+
+## Future build commands
+
+The following commands are intended for **Phase 1+** once real CMake targets and tests exist:
+
+```sh
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/debug
+ctest --test-dir build/debug --output-on-failure
+```
+
+During Phase 0, CMake only configures a placeholder project.
+
+## Repository docs
+
+- [Project map](docs/00-project-map.md)
+- [Learning roadmap](docs/01-learning-roadmap.md)
+
+## License
+
+MIT.
