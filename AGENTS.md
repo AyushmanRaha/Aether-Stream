@@ -6,15 +6,39 @@ Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous messag
 
 ## Current phase
 
-The repository is in Phase 0 baseline only.
+Phase 1 has been implemented: the repository now has a real CMake skeleton, `aether_stream` library target, public version API, smoke example, and first CTest test.
+
+## Next phase
+
+Phase 2 is next: Core types, message model, and error/status handling.
 
 ## Phase boundaries
 
-- Phase 0: documentation, setup, and configuration only.
-- Phase 1: real CMake library target.
-- Phase 2+: code implementation.
+- Phase 0 completed: documentation, setup, and configuration.
+- Phase 1 completed: CMake skeleton, library target, version API, smoke example, and first CTest test.
+- Phase 2 next: core public types, message model, and error/status handling.
+- Phase 3+ later: concurrency primitives, persistence, broker behavior, benchmarks, CLI tools, CI, packaging, and advanced tuning.
 
-Do not add library code, broker APIs, ring buffers, WAL implementation, benchmarks, tests, examples, or CLI tools while working on Phase 0 tasks.
+Do not add Phase 2+ implementation unless the active task explicitly asks for that phase.
+
+## Current build targets
+
+- `aether_stream`: main library target.
+- `aether::stream`: alias target for consumers.
+- `aether_smoke`: smoke example executable when examples are enabled.
+- `aether_test_version`: first CTest executable when tests are enabled.
+
+## Do not add unless requested by a phase
+
+- SPSC queue
+- WAL
+- `mmap` persistence
+- broker implementation or broker APIs
+- benchmarks
+- CLI apps
+- sanitizer files
+- packaging/export/install logic
+- external dependencies
 
 ## Do not overclaim
 
@@ -22,26 +46,26 @@ Do not add fake performance numbers, MVP claims, production-ready claims, or wor
 
 ## Style rules
 
-- Use C++20 when C++ code is introduced in later phases.
+- Use C++20 for C++ code.
 - Use the repository `.clang-format` file for C++ formatting.
 - Keep commits small and focused.
 - Do not vendor dependencies unless a later phase explicitly asks for them.
 
 ## Expected future layout
 
-Future phases may add `include/`, `src/`, `tests/`, `benchmarks/`, `apps/`, `examples/`, `tools/`, `cmake/`, `docs/`, and `scripts/` as needed.
+Future phases may add or expand `include/`, `src/`, `tests/`, `benchmarks/`, `apps/`, `examples/`, `tools/`, `cmake/`, `docs/`, and `scripts/` as needed.
 
 ## Local verification
 
 Useful local commands:
 
 ```sh
-chmod +x scripts/bootstrap_macos.sh
-./scripts/bootstrap_macos.sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+./scripts/run_tests.sh
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON
+cmake --build build/debug
+ctest --test-dir build/debug --output-on-failure
+./build/debug/examples/smoke
 ```
-
-The CMake command may configure the Phase 0 placeholder project, but it should not be treated as full build validation yet.
 
 ## Cost/limit efficiency
 
