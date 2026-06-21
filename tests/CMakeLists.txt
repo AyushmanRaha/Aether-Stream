@@ -1,12 +1,14 @@
-add_executable(aether_test_version test_version.cpp)
+function(aether_add_test target source test_name)
+  add_executable(${target} ${source})
+  target_link_libraries(${target} PRIVATE aether::stream)
+  aether_set_project_warnings(${target})
+  set_target_properties(
+    ${target}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+  )
+  add_test(NAME ${test_name} COMMAND ${target})
+endfunction()
 
-target_link_libraries(aether_test_version PRIVATE aether::stream)
-
-aether_set_project_warnings(aether_test_version)
-
-set_target_properties(
-  aether_test_version
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
-)
-
-add_test(NAME aether.version COMMAND aether_test_version)
+aether_add_test(aether_test_version test_version.cpp aether.version)
+aether_add_test(aether_test_status test_status.cpp aether.status)
+aether_add_test(aether_test_message test_message.cpp aether.message)

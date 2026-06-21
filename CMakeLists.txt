@@ -17,7 +17,7 @@ include(AetherOptions)
 include(AetherCompilerWarnings)
 include(AetherDependencies)
 
-add_library(aether_stream src/version.cpp)
+add_library(aether_stream src/version.cpp src/core/status.cpp)
 
 add_library(aether::stream ALIAS aether_stream)
 
@@ -46,4 +46,4 @@ if(AETHER_BUILD_BENCHMARKS)
   message(STATUS "AETHER_BUILD_BENCHMARKS is ON, but benchmarks are planned for Phase 5.")
 endif()
 
-message(STATUS "Aether-Stream Phase 1 build configured.")
+message(STATUS "Aether-Stream Phase 2 build configured.")
