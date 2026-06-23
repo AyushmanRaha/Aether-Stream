@@ -35,6 +35,14 @@ if(AETHER_BUILD_EXAMPLES)
     aether_smoke
     PROPERTIES OUTPUT_NAME smoke RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
   )
+
+  add_executable(aether_basic_spsc examples/basic_spsc.cpp)
+  target_link_libraries(aether_basic_spsc PRIVATE aether::stream)
+  aether_set_project_warnings(aether_basic_spsc)
+  set_target_properties(
+    aether_basic_spsc
+    PROPERTIES OUTPUT_NAME basic_spsc RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
+  )
 endif()
 
 if(AETHER_BUILD_TESTS)
@@ -46,4 +54,4 @@ if(AETHER_BUILD_BENCHMARKS)
   message(STATUS "AETHER_BUILD_BENCHMARKS is ON, but benchmarks are planned for Phase 5.")
 endif()
 
-message(STATUS "Aether-Stream Phase 2 build configured.")
+message(STATUS "Aether-Stream Phase 3 build configured.")
