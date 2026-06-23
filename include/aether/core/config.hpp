@@ -8,6 +8,8 @@ namespace aether {
 
 struct QueueConfig {
     std::size_t capacity{default_queue_capacity};
+    std::uint32_t spin_pause_iterations{64};
+    bool yield_after_spin{true};
 
     [[nodiscard]] Status validate() const noexcept {
         if (capacity == 0) {

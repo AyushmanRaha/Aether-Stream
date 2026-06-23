@@ -24,6 +24,7 @@ add_library(aether::stream ALIAS aether_stream)
 target_include_directories(aether_stream PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 target_compile_features(aether_stream PUBLIC cxx_std_20)
+target_link_libraries(aether_stream PUBLIC Threads::Threads)
 
 aether_set_project_warnings(aether_stream)
 
@@ -45,6 +46,16 @@ if(AETHER_BUILD_EXAMPLES)
   )
 endif()
 
+if(AETHER_BUILD_TOOLS)
+  add_executable(aether_stress_spsc tools/stress_spsc.cpp)
+  target_link_libraries(aether_stress_spsc PRIVATE aether::stream)
+  aether_set_project_warnings(aether_stress_spsc)
+  set_target_properties(
+    aether_stress_spsc
+    PROPERTIES OUTPUT_NAME stress_spsc RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tools"
+  )
+endif()
+
 if(AETHER_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
@@ -54,4 +65,4 @@ if(AETHER_BUILD_BENCHMARKS)
   message(STATUS "AETHER_BUILD_BENCHMARKS is ON, but benchmarks are planned for Phase 5.")
 endif()
 
-message(STATUS "Aether-Stream Phase 3 build configured.")
+message(STATUS "Aether-Stream Phase 4 build configured.")
