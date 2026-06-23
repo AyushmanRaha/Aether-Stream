@@ -8,3 +8,5 @@ include_guard(GLOBAL)
 # - Google Benchmark for performance benchmarks
 #
 # Keep third-party dependency logic isolated in this file.
+
+find_package(Threads REQUIRED)
