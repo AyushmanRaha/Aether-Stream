@@ -1,70 +1,115 @@
 # Aether-Stream
 
-Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous message broker project.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository currently focuses on the reusable library foundation, message representation, and a single-producer/single-consumer queue primitive that later broker components can build on.
 
 ## Current status
 
-This repository has completed **Phase 2: Core types, message model, and error/status handling**.
+The repository currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, local scripts, and a manual SPSC stress tool.
 
-The project now has a real CMake library target, a public version API, reusable core public types, status/error handling, a small expected-like wrapper, config structs, a non-owning message header/view model, a smoke example, and CTest-based version/status/message tests. It is still an early skeleton: no production-ready broker, SPSC queue, write-ahead log (WAL), benchmarks, or CLI exists yet.
-
-## What this project will become
-
-Aether-Stream is planned to grow into a C++20 message broker/library and CLI toolkit with:
-
-- a C++20 library;
-- an SPSC lock-free ring buffer;
-- a clear message model;
-- an optional `mmap`-backed write-ahead log;
-- a broker API;
-- CLI tools;
-- tests, benchmarks, documentation, and CI.
+It is not yet a complete broker. Persistence, a broker API, benchmark framework and measured results, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet.
 
 ## What exists today
 
-The Phase 2 repository contains:
+### Build system
 
-- a real CMake project skeleton;
-- the `aether_stream` library target;
-- the `aether::stream` alias target for consumers;
-- a public version header at `include/aether/version.hpp`;
-- a compiled version source at `src/version.cpp`;
-- core public type aliases and constants;
-- status/error handling with stable status names and messages;
-- a C++20 expected-like wrapper without external dependencies;
-- a non-owning message header/view model;
-- queue, WAL, and broker config structs with validation helpers;
-- a smoke example executable that prints the project version;
-- CTest test executables for version, status, and message behavior;
-- local scripts for running tests and formatting C++ files;
-- baseline repository documentation, formatting, and editor configuration.
+- Top-level CMake project using C++20.
+- Library target: `aether_stream`.
+- Public alias target for consumers: `aether::stream`.
+- Options for enabling tests, examples, tools, warnings, warnings-as-errors, and benchmark builds.
+- Benchmark support is explicitly not implemented by the current CMake configuration.
+
+### Core API
+
+- Public version API in `include/aether/version.hpp`, implemented in `src/version.cpp`.
+- Core type aliases, constants, and a power-of-two helper in `include/aether/core/types.hpp`.
+- Status codes, status names/messages, and the `Status` type in `include/aether/core/status.hpp` and `src/core/status.cpp`.
+- Lightweight C++20 `Expected<T>` and `Expected<void>` wrapper in `include/aether/core/expected.hpp`.
+- Queue, WAL, and broker configuration structs with validation helpers in `include/aether/core/config.hpp`.
+
+### Message model
+
+- `MessageHeader`, `MessageView`, and `PayloadView` in `include/aether/message.hpp`.
+- Helpers for checking payload size, constructing a non-owning message view, and validating that a view's header matches its payload span.
+
+### SPSC queue
+
+- `SpscRingBuffer<T, Capacity>` in `include/aether/spsc_ring_buffer.hpp`.
+- The queue design supports exactly one producer thread and exactly one consumer thread. Multiple producers or multiple consumers are not supported.
+- Capacity is a compile-time power-of-two template argument with a minimum value of 2.
+- Available operations include `try_push`, `try_emplace`, `try_pop`, `empty`, `full`, `capacity`, and approximate size reporting through `size_approx`.
+- The implementation uses acquire/release atomics for producer/consumer publication and cache-line padding for head and tail counters.
+- Move-only payload behavior is tested, including `std::unique_ptr<int>` and a custom move-only object.
+
+### Utilities
+
+- Cache-line padding utility in `include/aether/detail/cache_line.hpp`.
+- Platform/compiler/architecture detection and force-inline macro in `include/aether/detail/platform.hpp`.
+- Monotonic nanosecond clock and stopwatch helper in `include/aether/utils/clock.hpp`.
+- Thread yield, CPU relax, spin-wait, and current-thread naming helpers in `include/aether/utils/thread_utils.hpp`.
+
+### Examples
+
+- `examples/smoke.cpp` links against `aether::stream` and prints the library version.
+- `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
+
+### Tests
+
+CTest registers standalone test executables for:
+
+- version constants and `version_string()`;
+- status/error handling and expected-like results;
+- message header/view construction and validation;
+- basic SPSC behavior, full/empty behavior, FIFO order, and `MessageHeader` transfer;
+- SPSC wraparound and rolling push/pop behavior;
+- concurrent SPSC transfer of ordered sequence numbers between one producer and one consumer;
+- move-only payload support, including move-only object behavior;
+- stress coverage that checks multiple queue capacities and preserves order.
+
+### Scripts/tooling
+
+- `scripts/run_tests.sh` configures, builds, and runs the local test suite.
+- `scripts/format_all.sh` formats or checks C/C++ files in the repository source directories.
+- `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
+- `tools/stress_spsc.cpp` provides a manual SPSC stress executable when tools are enabled.
 
 ## What does not exist yet
 
-The repository does **not** currently include:
+Planned work that is not currently implemented includes:
 
-- an SPSC ring buffer;
-- WAL or `mmap` persistence;
-- a broker API;
-- a benchmark framework;
-- a CLI toolkit;
-- production readiness or performance claims.
+- broker API;
+- mmap-backed file layer;
+- WAL writer, reader, and recovery behavior;
+- benchmark framework and measured results;
+- CLI toolkit;
+- metrics and diagnostics;
+- CI, sanitizers, and packaging.
 
 ## Build and test
 
-Configure, build, test, and run the smoke example with:
+Configure, build, and run the registered CTest suite with tests, examples, and tools enabled:
 
 ```sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON
 cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
+```
+
+Run the smoke example:
+
+```sh
 ./build/debug/examples/smoke
 ```
 
-The smoke example should print:
+Expected output:
 
 ```text
 Aether-Stream 0.1.0
+```
+
+Run the basic SPSC example:
+
+```sh
+./build/debug/examples/basic_spsc
 ```
 
 You can also use the local test shortcut:
@@ -72,6 +117,18 @@ You can also use the local test shortcut:
 ```sh
 ./scripts/run_tests.sh
 ```
+
+## Manual stress tool
+
+The manual SPSC stress tool is built when `AETHER_BUILD_TOOLS=ON` is passed to CMake:
+
+```sh
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TOOLS=ON
+cmake --build build/debug --target aether_stress_spsc
+./build/debug/tools/stress_spsc --messages 1000000 --capacity 1024
+```
+
+Supported capacities are `64`, `256`, `1024`, `4096`, and `65536`. The tool transfers ordered integer values between one producer and one consumer, then reports elapsed time, retry counts, and validation status for that run. Its output is for manual stress validation only and is not a benchmark result.
 
 ## Formatting
 
@@ -87,22 +144,14 @@ Check formatting without modifying files with:
 ./scripts/format_all.sh --check
 ```
 
-## Planned roadmap
+## Development roadmap
 
-0. Repo baseline and local environment — completed
-1. CMake skeleton and library target — completed
-2. Core types and message model — completed
-3. SPSC ring buffer v1
-4. Concurrency correctness hardening
-5. Benchmark framework
-6. Memory-mapped file layer
-7. WAL writer/reader
-8. Broker integration
-9. CLI toolkit and examples
-10. Metrics and diagnostics
-11. CI, sanitizers, packaging
-12. Advanced low-latency upgrades
-13. Documentation and portfolio packaging
+- Add benchmark framework and honest measured results.
+- Add mmap-backed file abstraction.
+- Add WAL record format, writer, reader, and recovery behavior.
+- Add broker API over the queue and persistence layer.
+- Add CLI tools for publishing, replaying, inspecting WAL files, and running demos.
+- Add metrics, diagnostics, CI, sanitizers, and packaging.
 
 ## Local setup
 
