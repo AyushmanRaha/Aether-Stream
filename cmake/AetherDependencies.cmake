@@ -1,11 +1,10 @@
 include_guard(GLOBAL)
 
-# Phase 1 intentionally has no external dependencies.
-# The first test is a tiny CTest executable with a custom main.
+# Phase 4 intentionally has no external dependencies beyond platform threads.
+# Current tests are tiny CTest executables with custom mains.
 #
-# Future phases may add dependency setup here, for example:
-# - GoogleTest for richer unit tests
-# - Google Benchmark for performance benchmarks
+# Future phases may add dependency setup here only when explicitly requested,
+# for example Google Benchmark during Phase 5 benchmark work.
 #
 # Keep third-party dependency logic isolated in this file.
 

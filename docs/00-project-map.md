@@ -1,76 +1,128 @@
 # Project Map
 
-## Current Phase 2 layout
+## Current status: completed through Phase 4
 
-The repository now contains the Phase 2 build skeleton, minimal library pipeline, and reusable core public types:
+Aether-Stream currently has the Phase 0 through Phase 4 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, and a manual SPSC stress tool.
 
-- `README.md` explains the project goal, current Phase 2 status, roadmap, and build/test commands.
-- `CMakeLists.txt` configures the real CMake project and defines the `aether_stream` library target.
+The repository is still not a complete broker. It does not yet include persistence, a broker API, measured benchmark results, a CLI toolkit, metrics/diagnostics, CI automation, packaging, or production-readiness claims.
+
+## Current repository layout
+
+- `README.md` explains the project goal, current Phase 4 status, build/test commands, examples, and explicit non-goals for the current implementation.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
 - `.clang-format` defines the C++ formatting style.
-- `AGENTS.md` gives coding agents concise project context, current targets, and phase boundaries.
-- `cmake/` contains reusable CMake modules:
-  - `AetherOptions.cmake` defines developer-mode defaults and build options.
-  - `AetherCompilerWarnings.cmake` applies project warning flags to selected targets.
-  - `AetherDependencies.cmake` reserves a dependency-wiring location without fetching dependencies in Phase 2.
-- `include/aether/version.hpp` exposes the public version constants and `version_string()` API.
+- `AGENTS.md` gives coding agents concise current context, build targets, phase boundaries, and no-overclaim rules.
+- `.github/CODEOWNERS` contains repository ownership metadata only; there is no GitHub Actions CI setup yet.
+- `cmake/` contains reusable CMake modules.
+- `include/aether/` contains public library headers.
+- `src/` contains compiled library implementation files.
+- `examples/` contains small usage examples.
+- `tests/` contains standalone CTest executables without GoogleTest.
+- `tools/` contains the manual SPSC stress-validation executable.
+- `scripts/` contains local setup, test, and formatting scripts.
+- `docs/` contains this project map and the learning roadmap.
+
+## Build system
+
+The top-level `CMakeLists.txt` configures a C++20 project and defines these current targets when their options are enabled:
+
+- `aether_stream`: main library target.
+- `aether::stream`: public alias target for consumers.
+- `aether_smoke`: smoke example executable.
+- `aether_basic_spsc`: basic SPSC example executable.
+- `aether_stress_spsc`: manual SPSC stress tool.
+- `aether_test_version`: version CTest executable.
+- `aether_test_status`: status CTest executable.
+- `aether_test_message`: message CTest executable.
+- `aether_test_spsc_basic`: basic SPSC CTest executable.
+- `aether_test_spsc_wraparound`: SPSC wraparound CTest executable.
+- `aether_test_spsc_concurrent`: concurrent ordered-transfer CTest executable.
+- `aether_test_spsc_move_only`: move-only payload CTest executable.
+- `aether_test_spsc_stress`: multi-capacity SPSC stress CTest executable.
+
+Reusable CMake modules are:
+
+- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, benchmark placeholder wiring, warnings, and warnings-as-errors.
+- `cmake/AetherCompilerWarnings.cmake`: project warning flags for selected targets.
+- `cmake/AetherDependencies.cmake`: centralized dependency setup; it currently finds only threads and does not fetch third-party packages.
+
+`AETHER_BUILD_BENCHMARKS` is intentionally a Phase 5 placeholder. Turning it on does not add benchmark dependencies or benchmark targets.
+
+## Public headers
+
+- `include/aether/version.hpp` exposes version constants and `version_string()`.
 - `include/aether/core/types.hpp` defines stable core aliases, constants, and a power-of-two helper.
 - `include/aether/core/status.hpp` declares status codes and the lightweight `Status` type.
 - `include/aether/core/expected.hpp` provides a small C++20 expected-like result wrapper.
-- `include/aether/core/config.hpp` defines queue, WAL, and broker config structs with validation helpers.
+- `include/aether/core/config.hpp` defines queue, WAL, and broker configuration structs with validation helpers, including queue tuning fields used by the current SPSC work.
 - `include/aether/message.hpp` defines the non-owning message header/view model and validation helpers.
+- `include/aether/spsc_ring_buffer.hpp` defines the header-only `SpscRingBuffer<T, Capacity>` for exactly one producer and exactly one consumer.
+- `include/aether/detail/cache_line.hpp` provides cache-line padding/alignment helpers.
+- `include/aether/detail/platform.hpp` provides platform/compiler/architecture detection and a force-inline macro.
+- `include/aether/utils/clock.hpp` provides a monotonic nanosecond clock and stopwatch helper.
+- `include/aether/utils/thread_utils.hpp` provides CPU relax, yielding, spin-wait, and best-effort current-thread naming helpers.
+
+## Library implementation files
+
 - `src/version.cpp` compiles the version API into the library target.
 - `src/core/status.cpp` compiles stable status names and default messages into the library target.
-- `examples/smoke.cpp` is a tiny executable that links against `aether::stream` and prints the version.
-- `tests/CMakeLists.txt` builds and registers standalone CTest executables.
-- `tests/test_version.cpp` checks the public version constants and string without GoogleTest.
-- `tests/test_status.cpp` checks status and expected-like result behavior without GoogleTest.
-- `tests/test_message.cpp` checks message view construction and validation without GoogleTest.
-- `scripts/bootstrap_macos.sh` checks local macOS development tools.
-- `scripts/run_tests.sh` configures, builds, and runs CTest locally.
-- `scripts/format_all.sh` formats or checks C++ files in source directories.
 
-## Current build pipeline
+## Examples
 
-The Phase 2 pipeline is intentionally small:
+- `examples/smoke.cpp` links against `aether::stream` and prints the library version.
+- `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
 
-1. CMake configures the project with C++20 and local options.
-2. The `aether_stream` library compiles `src/version.cpp` and `src/core/status.cpp`.
-3. The `aether_smoke` example links against `aether::stream` when examples are enabled.
-4. The `aether_test_version`, `aether_test_status`, and `aether_test_message` executables link against `aether::stream` when tests are enabled.
-5. CTest runs the registered `aether.version`, `aether.status`, and `aether.message` tests.
+## Tests
 
-## Still not present yet
+CTest currently covers:
 
-Phase 2 does not include:
+- version constants and `version_string()`;
+- status/error handling and expected-like result behavior;
+- message view construction and validation;
+- basic SPSC push/pop, empty/full behavior, FIFO order, and `MessageHeader` transfer;
+- SPSC wraparound and rolling push/pop behavior;
+- concurrent SPSC transfer of at least 1,000,000 ordered values between one producer and one consumer;
+- move-only payload support, including `std::unique_ptr<int>` and a custom move-only type;
+- SPSC stress coverage for capacities `64`, `256`, `1024`, and `65536`.
 
-- an SPSC queue;
-- WAL or `mmap` persistence;
-- a broker API;
-- benchmarks;
-- CLI apps;
-- CI automation.
+## Tools
 
-Phase 3 will add the first SPSC ring buffer work.
+- `tools/stress_spsc.cpp` builds as `aether_stress_spsc` when `AETHER_BUILD_TOOLS=ON`.
+- The stress tool validates ordered transfer through the SPSC queue for selected capacities and message counts.
+- The stress tool is for manual correctness/stress validation only. Its output must not be presented as benchmark results.
 
-## Planned future layout
+## Scripts
 
-Later phases are expected to add or expand these directories when they are needed:
+- `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
+- `scripts/run_tests.sh` configures, builds, and runs the local CTest suite.
+- `scripts/format_all.sh` formats or checks C/C++ files in known source directories.
 
-- `include/aether/` for public C++ library headers.
-- `src/` for library implementation files.
-- `tests/` for unit, integration, and stress tests.
-- `benchmarks/` for latency and throughput benchmarks.
-- `examples/` for small usage examples.
-- `apps/` for broker or CLI applications.
-- `tools/` for developer and diagnostic tools.
-- `cmake/` for reusable CMake modules.
-- `docs/` for design notes, learning material, and user documentation.
-- `scripts/` for local setup and maintenance scripts.
-- `.github/workflows/` for CI automation.
+## What does not exist yet
+
+Phase 5 and later work is not implemented yet. The repository currently has no:
+
+- benchmark framework or measured benchmark-results document;
+- benchmark dependency such as Google Benchmark;
+- mmap-backed file layer;
+- WAL writer, reader, recovery, or file-format implementation;
+- broker API or broker runtime;
+- CLI toolkit apps;
+- metrics or diagnostics subsystem;
+- GitHub Actions CI, sanitizer jobs, packaging, export/install logic, or release automation;
+- production-ready, HFT-ready, or latency-performance claims.
+
+## Next phase
+
+Phase 5 is the next planned phase: benchmark framework and honest performance reporting. That phase should add measurement infrastructure and reporting only when explicitly requested, and it must avoid fake or marketing-style performance claims.
 
 ## Phase boundaries
 
-Phase 0 established documentation, setup, and configuration. Phase 1 created the real CMake skeleton and first library/test/example path. Phase 2 added core public types, status/error handling, an expected-like wrapper, config structs, and the non-owning message model. Phase 3 and later phases will begin implementing concurrency primitives, persistence, broker behavior, tooling, tests, benchmarks, and packaging.
+- Phase 0 completed: baseline repository setup, README, license, ignore/editor/format files, initial docs, and macOS bootstrap script.
+- Phase 1 completed: real CMake project, library target, alias target, public version API, smoke example, first CTest path, test script, and formatting script.
+- Phase 2 completed: core public types, status/error handling, expected-like wrapper, configuration structs, message model, and status/message tests.
+- Phase 3 completed: header-only SPSC ring buffer v1, cache-line/platform helpers, basic SPSC example, and basic/wraparound SPSC tests.
+- Phase 4 completed: SPSC correctness hardening, move support, approximate sizing, acquire/release memory-order documentation, queue tuning fields, utility helpers, concurrent/move-only/stress tests, and manual stress tool.
+- Phase 5 next: benchmark framework and honest performance reporting, only when explicitly requested.
+- Phase 6+ later: persistence, WAL, broker behavior, CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.

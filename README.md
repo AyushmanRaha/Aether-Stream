@@ -4,7 +4,7 @@ Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker
 
 ## Current status
 
-The repository currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, local scripts, and a manual SPSC stress tool.
+The repository is complete through Phase 4 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, and a manual SPSC stress tool.
 
 It is not yet a complete broker. Persistence, a broker API, benchmark framework and measured results, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet.
 
@@ -145,6 +145,8 @@ Check formatting without modifying files with:
 ```
 
 ## Development roadmap
+
+Phase 5 is next. Planned future work includes:
 
 - Add benchmark framework and honest measured results.
 - Add mmap-backed file abstraction.

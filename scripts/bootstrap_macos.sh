@@ -56,7 +56,7 @@ mkdir -p build/debug build/release
 echo
 echo "Created build/debug and build/release directories."
 echo
-echo "Future Phase 1+ commands:"
+echo "Common local build/test commands:"
 echo "  cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug"
 echo "  cmake --build build/debug"
 echo "  ctest --test-dir build/debug --output-on-failure"
