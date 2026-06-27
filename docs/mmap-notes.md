@@ -2,6 +2,8 @@
 
 Phase 6 adds a small memory-mapped file primitive for Aether-Stream. It is intentionally only an operating-system resource wrapper; it is not a WAL, a broker, or a durability policy.
 
+Historical note: this document describes the Phase 6 mmap layer. Phase 7 has since added standalone WAL record, writer, reader, checksum, and replay support on top of `MmapFile`. The separation is intentional: `MmapFile` remains a low-level mapped-file primitive, while WAL record semantics live under `include/aether/wal/` and `src/wal/`.
+
 ## What `mmap` means
 
 `mmap` asks the operating system to map a file into a process address range. After a successful mapping, code can read and write the mapped bytes through a pointer or span instead of calling `read` and `write` for each access. The kernel keeps the mapping connected to the underlying file.
@@ -58,4 +60,4 @@ Phase 6 deliberately does not add:
 - metrics or diagnostics;
 - performance claims.
 
-Phase 7 should build the WAL writer and reader on top of `MmapFile` without mixing WAL record semantics into this low-level mapping primitive.
+Phase 7 now builds the standalone WAL writer and reader on top of `MmapFile` without mixing WAL record semantics into this low-level mapping primitive.
