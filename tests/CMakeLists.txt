@@ -19,3 +19,7 @@ aether_add_test(aether_test_spsc_move_only test_spsc_move_only.cpp aether.spsc.m
 aether_add_test(aether_test_spsc_stress test_spsc_stress.cpp aether.spsc.stress)
 
 aether_add_test(aether_test_mmap_file test_mmap_file.cpp aether.mmap_file)
+
+aether_add_test(aether_test_wal_record test_wal_record.cpp aether.wal.record)
+aether_add_test(aether_test_wal_writer test_wal_writer.cpp aether.wal.writer)
+aether_add_test(aether_test_wal_reader test_wal_reader.cpp aether.wal.reader)

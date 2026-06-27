@@ -17,7 +17,15 @@ include(AetherOptions)
 include(AetherCompilerWarnings)
 include(AetherDependencies)
 
-add_library(aether_stream src/version.cpp src/core/status.cpp src/io/mmap_file.cpp)
+add_library(
+  aether_stream
+  src/version.cpp
+  src/core/status.cpp
+  src/io/mmap_file.cpp
+  src/wal/checksum.cpp
+  src/wal/wal_writer.cpp
+  src/wal/wal_reader.cpp
+)
 
 add_library(aether::stream ALIAS aether_stream)
 
@@ -52,6 +60,14 @@ if(AETHER_BUILD_EXAMPLES)
     aether_mmap_smoke
     PROPERTIES OUTPUT_NAME mmap_smoke RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
   )
+
+  add_executable(aether_wal_replay examples/wal_replay.cpp)
+  target_link_libraries(aether_wal_replay PRIVATE aether::stream)
+  aether_set_project_warnings(aether_wal_replay)
+  set_target_properties(
+    aether_wal_replay
+    PROPERTIES OUTPUT_NAME wal_replay RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
+  )
 endif()
 
 if(AETHER_BUILD_TOOLS)
@@ -73,4 +89,4 @@ if(AETHER_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-message(STATUS "Aether-Stream Phase 6 build configured.")
+message(STATUS "Aether-Stream Phase 7 build configured.")

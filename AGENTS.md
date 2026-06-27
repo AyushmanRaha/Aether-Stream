@@ -6,11 +6,11 @@ Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous messag
 
 ## Current phase
 
-Phase 6 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, and Phase 6 memory-mapped file abstraction.
+Phase 7 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, and Phase 7 WAL writer/reader persistence foundation.
 
 ## Next phase
 
-Phase 7 is next: WAL writer/reader. Do not add Phase 7 implementation unless the active task explicitly asks for that phase.
+Phase 8 is next: broker integration. Do not add Phase 8 implementation unless the active task explicitly asks for that phase.
 
 ## Phase boundaries
 
@@ -21,9 +21,10 @@ Phase 7 is next: WAL writer/reader. Do not add Phase 7 implementation unless the
 - Phase 4 completed: SPSC hardening with move support, `size_approx`, acquire/release memory-order comments, queue tuning fields, utility helpers, concurrent/move-only/stress tests, and manual SPSC stress tool.
 - Phase 5 completed: Google Benchmark wiring, SPSC throughput/latency/payload-size benchmarks, release benchmark runner, raw-result workflow, benchmark methodology doc, and performance-results template.
 - Phase 6 completed: memory-mapped file abstraction, including `MmapFile`, POSIX mmap implementation, persistence tests, mmap smoke example, and mmap notes.
-- Phase 7+ later: WAL, broker behavior, CLI tools, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 7 completed: WAL record format, CRC32 checksum support, append-only WAL writer, sequential WAL reader, replay example, WAL tests, and format documentation.
+- Phase 8+ later: broker behavior, CLI tools, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
 
-Do not add Phase 7+ implementation unless the active task explicitly asks for that phase.
+Do not add Phase 8+ implementation unless the active task explicitly asks for that phase.
 
 ## Current build targets
 
@@ -32,6 +33,7 @@ Do not add Phase 7+ implementation unless the active task explicitly asks for th
 - `aether_smoke`: smoke example executable when examples are enabled.
 - `aether_basic_spsc`: basic SPSC example executable when examples are enabled.
 - `aether_mmap_smoke`: mmap smoke example executable when examples are enabled.
+- `aether_wal_replay`: WAL replay example executable when examples are enabled.
 - `aether_stress_spsc`: manual SPSC stress tool when tools are enabled.
 - `aether_test_version`: version CTest executable when tests are enabled.
 - `aether_test_status`: status CTest executable when tests are enabled.
@@ -42,6 +44,9 @@ Do not add Phase 7+ implementation unless the active task explicitly asks for th
 - `aether_test_spsc_move_only`: move-only payload SPSC CTest executable when tests are enabled.
 - `aether_test_spsc_stress`: multi-capacity SPSC stress CTest executable when tests are enabled.
 - `aether_test_mmap_file`: mmap file CTest executable when tests are enabled.
+- `aether_test_wal_record`: WAL record-format CTest executable when tests are enabled.
+- `aether_test_wal_writer`: WAL writer CTest executable when tests are enabled.
+- `aether_test_wal_reader`: WAL reader CTest executable when tests are enabled.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark when benchmarks are enabled.
 - `aether_bench_spsc_latency`: SPSC latency benchmark when benchmarks are enabled.
 - `aether_bench_payload_sizes`: SPSC payload-size benchmark when benchmarks are enabled.
@@ -58,8 +63,13 @@ Do not add Phase 7+ implementation unless the active task explicitly asks for th
 - Cache-line and platform detail helpers.
 - Clock and thread utility helpers.
 - RAII POSIX memory-mapped file wrapper (`MmapFile`).
+- WAL record format.
+- CRC32 checksum support.
+- Append-only WAL writer.
+- Sequential WAL reader.
+- WAL replay example.
 - Smoke, basic SPSC, and mmap smoke examples.
-- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, and mmap file tests.
+- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, mmap file, and WAL tests.
 - Manual SPSC stress-validation tool.
 - Google Benchmark dependency wiring gated behind `AETHER_BUILD_BENCHMARKS`.
 - SPSC throughput, per-message latency, and payload-size benchmark executables.
@@ -69,7 +79,6 @@ Do not add Phase 7+ implementation unless the active task explicitly asks for th
 ## Do not add unless requested by a phase
 
 - Measured performance claims that are not backed by raw benchmark outputs.
-- WAL implementation.
 - Broker implementation or broker APIs.
 - CLI toolkit apps.
 - Metrics or diagnostics systems.
@@ -103,6 +112,7 @@ ctest --test-dir build/debug --output-on-failure
 ./build/debug/examples/smoke
 ./build/debug/examples/basic_spsc
 ./build/debug/examples/mmap_smoke
+./build/debug/examples/wal_replay
 ./build/debug/tools/stress_spsc --messages 1000000 --capacity 1024
 ./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
 ```
