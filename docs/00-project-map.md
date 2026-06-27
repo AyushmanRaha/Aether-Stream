@@ -22,7 +22,15 @@ The repository is still not a complete broker. It does not yet include persisten
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
-- `docs/` contains this project map and the learning roadmap.
+- `docs/` contains this project map, the learning roadmap, the SPSC ring-buffer design document, and the memory-ordering document.
+
+
+## Current docs
+
+- `docs/00-project-map.md`: current repository map, build targets, implemented components, and phase boundaries.
+- `docs/01-learning-roadmap.md`: study path for contributors learning the project phase by phase.
+- `docs/ring-buffer-design.md`: Phase 3-4 SPSC ring-buffer design, API, slot lifecycle, tests, limitations, and future work.
+- `docs/memory-ordering.md`: Phase 4 acquire/release memory-ordering protocol for `SpscRingBuffer<T, Capacity>`.
 
 ## Build system
 
