@@ -2,7 +2,7 @@
 
 ## Purpose and scope
 
-The Phase 7 write-ahead log (WAL) is an append-only local persistence format for Aether-Stream message records. Phase 8 now uses this WAL through `aether::PersistentBroker<T, Capacity>`, which serializes trivially copyable event objects into WAL payloads before publishing them to the in-memory SPSC queue.
+The Phase 7 write-ahead log (WAL) is an append-only local persistence format for Aether-Stream message records. Phase 8 now uses this WAL through `aether::PersistentBroker<T, Capacity>`, which serializes trivially copyable event objects into WAL payloads before publishing them to the in-memory SPSC queue. Phase 9 adds CLI tools such as `aether_replay` and `aether_inspect_wal` for terminal replay and inspection of this WAL format.
 
 This document remains the binary WAL format specification. Broker-level semantics, typed replay, and user-facing API behavior are documented in `docs/broker-api.md`.
 
@@ -70,6 +70,15 @@ For typed replay, `PersistentBroker<T, Capacity>::replay(path, visitor)` opens t
 
 This typed replay is intended for same-program/same-platform replay of trivially copyable event structs. Cross-language schemas, ABI-independent persistence, endian conversion for typed payloads, and schema evolution are not part of Phase 8.
 
+## Phase 9 CLI inspection and replay
+
+Phase 9 provides terminal tools for working with WAL files:
+
+- `aether_replay` performs generic raw WAL replay and prints record summaries with safe payload previews.
+- `aether_inspect_wal` scans WAL files and prints format constants, record counts, offsets, sequence ranges, payload totals, and optional per-record details.
+
+These tools inspect and replay the existing WAL format. They do not repair corrupted files, rotate WAL segments, or provide production recovery automation.
+
 ## Limitations
 
 Phase 8 broker integration exists through `PersistentBroker`, but the lower-level WAL reader/writer remain standalone and reusable.
@@ -80,7 +89,7 @@ The WAL layer still intentionally does not include:
 - multi-segment WAL files;
 - concurrent writer support;
 - recovery indexes;
-- CLI tools;
+- WAL repair/truncation tooling;
 - schema evolution for typed broker payloads;
 - cross-language or ABI-independent typed payload encoding;
 - production crash-recovery guarantees beyond the existing explicit flush behavior.

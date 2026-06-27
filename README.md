@@ -1,6 +1,6 @@
 # Aether-Stream
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, and WAL-backed persistent broker API.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, and Phase 9 terminal CLI demo toolkit.
 
 ## Current status
 
@@ -108,11 +108,12 @@ CTest registers standalone test executables for:
 - in-memory broker publish/consume, full/empty handling, order, emplacement, move-only support, and runtime config validation;
 - persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, and typed replay;
 - mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage;
-- WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection.
+- WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection;
+- CLI argument parsing, defaults, help flags, valid values, and invalid argument handling through `tests/test_cli_args.cpp` (`aether.cli.args`).
 
 ### Benchmarks
 
-- Google Benchmark-based SPSC benchmarks build when `AETHER_BUILD_BENCHMARKS=ON`.
+- Google Benchmark-based SPSC benchmarks build when `AETHER_BUILD_BENCHMARKS=ON`. These are separate from the Phase 9 `aether_bench` CLI demo benchmark, which is a terminal demonstration rather than part of the Google Benchmark suite.
 - `bench_spsc_throughput` measures ordered producer/consumer throughput across queue capacities.
 - `bench_spsc_latency` records approximate timestamped per-message transfer latency distributions.
 - `bench_payload_sizes` compares throughput across 8B, 32B, 64B, 256B, and 1024B payload objects.
