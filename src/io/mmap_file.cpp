@@ -26,7 +26,9 @@ constexpr std::string_view map_failed_detail = "failed to map mmap file";
 constexpr std::string_view flush_failed_detail = "failed to flush mmap file";
 constexpr std::string_view unmap_failed_detail = "failed to unmap mmap file";
 constexpr std::string_view close_failed_detail = "failed to close mmap file";
+#if defined(_WIN32)
 constexpr std::string_view unsupported_detail = "mmap file is only implemented for POSIX platforms";
+#endif
 
 [[nodiscard]] Status invalid_path_status() noexcept {
     return Status{StatusCode::invalid_argument, invalid_path_detail};
