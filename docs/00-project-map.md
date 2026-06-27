@@ -52,6 +52,11 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_broker_basic`: in-memory broker example executable.
 - `aether_persistent_broker`: WAL-backed persistent broker example executable.
 - `aether_stress_spsc`: manual SPSC stress tool.
+- `aether_app_bench`: CLI demo benchmark target, output executable `aether_bench`, emitted under `${CMAKE_BINARY_DIR}/apps`.
+- `aether_app_pub`: CLI WAL publisher demo target, output executable `aether_pub`, emitted under `${CMAKE_BINARY_DIR}/apps`.
+- `aether_app_sub`: CLI local subscriber / typed WAL replay demo target, output executable `aether_sub`, emitted under `${CMAKE_BINARY_DIR}/apps`.
+- `aether_app_replay`: CLI raw WAL replay target, output executable `aether_replay`, emitted under `${CMAKE_BINARY_DIR}/apps`.
+- `aether_app_inspect_wal`: CLI WAL inspection target, output executable `aether_inspect_wal`, emitted under `${CMAKE_BINARY_DIR}/apps`.
 - `aether_test_version`: version CTest executable.
 - `aether_test_status`: status CTest executable.
 - `aether_test_message`: message CTest executable.
@@ -66,15 +71,18 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_test_wal_reader`: WAL reader CTest executable.
 - `aether_test_broker`: in-memory broker CTest executable.
 - `aether_test_persistent_broker`: persistent broker CTest executable.
+- `aether_test_cli_args`: CLI argument parsing CTest executable.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark executable.
 - `aether_bench_spsc_latency`: timestamped SPSC latency benchmark executable.
 - `aether_bench_payload_sizes`: SPSC payload-size comparison benchmark executable.
 
 Reusable CMake modules are:
 
-- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, benchmark option wiring, warnings, and warnings-as-errors.
+- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, CLI apps, benchmarks, warnings, and warnings-as-errors.
 - `cmake/AetherCompilerWarnings.cmake`: project warning flags for selected targets.
 - `cmake/AetherDependencies.cmake`: centralized dependency setup; it always finds threads and resolves Google Benchmark only when `AETHER_BUILD_BENCHMARKS=ON`.
+
+`AETHER_BUILD_APPS` enables the Phase 9 CLI app targets and emits them under `${CMAKE_BINARY_DIR}/apps`.
 
 `AETHER_BUILD_BENCHMARKS` enables the Phase 5 Google Benchmark dependency wiring and benchmark targets. Benchmark executables are separate from CTest targets and are emitted under `${CMAKE_BINARY_DIR}/benchmarks`.
 
@@ -146,7 +154,7 @@ CTest currently covers:
 - WAL reader sequential replay, reset, visitor replay, zero-filled tail EOF, partial-record clean stop, and checksum corruption detection;
 - in-memory broker publish/consume, full/empty behavior, FIFO order, `try_emplace`, move-only payload support, and runtime queue capacity validation;
 - persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, flush, and typed replay;
-- CLI argument parsing in `tests/test_cli_args.cpp`.
+- CLI argument parsing defaults, help flags, `--key value`, `--key=value`, valid options, and invalid argument handling in `tests/test_cli_args.cpp`.
 
 ## Benchmarks
 

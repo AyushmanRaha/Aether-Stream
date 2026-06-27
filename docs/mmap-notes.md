@@ -56,7 +56,6 @@ Phase 6 deliberately does not add:
 - crash recovery claims;
 - broker durability semantics;
 - broker APIs;
-- CLI tools;
 - metrics or diagnostics;
 - performance claims.
 

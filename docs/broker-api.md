@@ -108,11 +108,14 @@ aether::PersistentBroker<OrderEvent, 65536>::replay(
 
 The replay helper opens the WAL, validates each record through the WAL reader, checks that the payload size equals `sizeof(T)`, reconstructs a local `T`, and calls the visitor. A visitor status failure stops replay and is returned to the caller.
 
+For terminal demos, see `docs/cli-guide.md`. The CLI tools exercise the local broker/WAL APIs but do not change the broker's SPSC-only or no-networking semantics.
+
 ## Limitations
 
 - No networking.
-- No CLI yet.
+- Phase 9 CLI demos exist, but there is still no networked broker service or live inter-process subscriber.
 - No metrics yet.
 - No MPSC or MPMC support.
 - No blocking broker API.
 - No schema evolution for persisted C++ structs yet.
+- No production-ready crash-recovery guarantees.
