@@ -24,7 +24,7 @@ Unsupported today:
 - MPMC queues with multiple producers and multiple consumers;
 - blocking wait APIs;
 - cross-process queues;
-- persistence, `mmap`, WAL storage, or network transport;
+- persistence, WAL storage, network transport, or direct mmap integration inside the queue itself;
 - production-ready, HFT-ready, or unsupported performance claims;
 - official committed latency/throughput result tables without raw benchmark output.
 
@@ -200,4 +200,6 @@ Multiple producers or multiple consumers would break the ownership assumptions a
 
 Phase 5 has added the benchmark framework and honest reporting workflow. Future ring-buffer-related work should use those benchmarks to compare changes against the existing baseline without inventing latency or throughput claims.
 
-Phase 6 and later project phases may integrate the queue with mmap, WAL, broker, CLI, and metrics work. Optional advanced features, such as batching or zero-copy reservation APIs, should be considered only after measurement shows a real need and after their correctness model is designed carefully.
+Phase 6 has added the standalone mmap file primitive. The SPSC queue remains independent from persistence and does not directly own mapped storage. Phase 7 and later project phases may connect the queue, mmap layer, WAL, broker, CLI, and metrics through higher-level components.
+
+Optional advanced queue features, such as batching or zero-copy reservation APIs, should be considered only after measurement shows a real need and after their correctness model is designed carefully.
