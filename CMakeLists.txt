@@ -23,6 +23,7 @@ add_library(
   src/core/status.cpp
   src/io/mmap_file.cpp
   src/broker.cpp
+  src/cli/args.cpp
   src/wal/checksum.cpp
   src/wal/wal_writer.cpp
   src/wal/wal_reader.cpp
@@ -97,6 +98,24 @@ if(AETHER_BUILD_TOOLS)
   )
 endif()
 
+if(AETHER_BUILD_APPS)
+  function(aether_add_app target source output_name)
+    add_executable(${target} ${source})
+    target_link_libraries(${target} PRIVATE aether::stream)
+    aether_set_project_warnings(${target})
+    set_target_properties(
+      ${target}
+      PROPERTIES OUTPUT_NAME ${output_name} RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/apps"
+    )
+  endfunction()
+
+  aether_add_app(aether_app_bench apps/aether_bench.cpp aether_bench)
+  aether_add_app(aether_app_pub apps/aether_pub.cpp aether_pub)
+  aether_add_app(aether_app_sub apps/aether_sub.cpp aether_sub)
+  aether_add_app(aether_app_replay apps/aether_replay.cpp aether_replay)
+  aether_add_app(aether_app_inspect_wal apps/aether_inspect_wal.cpp aether_inspect_wal)
+endif()
+
 if(AETHER_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
@@ -106,4 +125,4 @@ if(AETHER_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-message(STATUS "Aether-Stream Phase 8 build configured.")
+message(STATUS "Aether-Stream Phase 9 build configured.")

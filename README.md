@@ -4,9 +4,9 @@ Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker
 
 ## Current status
 
-The repository is complete through Phase 8 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, and typed replay for trivially copyable persistent broker events.
+The repository is complete through Phase 9 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, and Phase 9 CLI demo apps.
 
-It is not production-ready. CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
+It is not production-ready. Metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -15,7 +15,7 @@ It is not production-ready. CLI toolkit, metrics/diagnostics, CI, packaging, and
 - Top-level CMake project using C++20.
 - Library target: `aether_stream`.
 - Public alias target for consumers: `aether::stream`.
-- Options for enabling tests, examples, tools, warnings, warnings-as-errors, and benchmark builds.
+- Options for enabling tests, examples, tools, CLI apps, warnings, warnings-as-errors, and benchmark builds.
 - Google Benchmark is wired only when `AETHER_BUILD_BENCHMARKS=ON`.
 
 ### Core API
@@ -83,6 +83,16 @@ It is not production-ready. CLI toolkit, metrics/diagnostics, CI, packaging, and
 - `examples/mmap_smoke.cpp` demonstrates a small mapped-file create/write/flush/close/reopen flow.
 - `examples/wal_replay.cpp` demonstrates WAL append and sequential replay.
 
+### CLI toolkit
+
+- Phase 9 CLI apps build when `AETHER_BUILD_APPS=ON`.
+- `aether_bench` runs a simple two-thread local broker demo benchmark without Google Benchmark.
+- `aether_pub` writes generated `OrderEvent` records to a local WAL-backed persistent broker.
+- `aether_sub` runs a local in-process subscriber demo or replays typed `OrderEvent` WAL records. It is not a network subscriber.
+- `aether_replay` prints generic raw WAL record summaries and safe payload previews.
+- `aether_inspect_wal` scans WAL files and prints format/count/offset summaries.
+- Full usage is documented in `docs/cli-guide.md`.
+
 ### Tests
 
 CTest registers standalone test executables for:
@@ -121,7 +131,6 @@ CTest registers standalone test executables for:
 
 Planned future work that is not currently implemented includes:
 
-- CLI toolkit;
 - metrics and diagnostics;
 - CI, sanitizers, and packaging;
 - advanced low-latency upgrades;
@@ -132,7 +141,7 @@ Planned future work that is not currently implemented includes:
 Configure, build, and run the registered CTest suite with tests, examples, and tools enabled:
 
 ```sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON -DAETHER_BUILD_APPS=ON
 cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
 ```
@@ -198,6 +207,30 @@ You can also use the local test shortcut:
 ./scripts/run_tests.sh
 ```
 
+## CLI demo apps
+
+Build with `-DAETHER_BUILD_APPS=ON`, then inspect help for each app:
+
+```sh
+./build/release/apps/aether_bench --help
+./build/release/apps/aether_pub --help
+./build/release/apps/aether_sub --help
+./build/release/apps/aether_replay --help
+./build/release/apps/aether_inspect_wal --help
+```
+
+Quick demo flow:
+
+```sh
+./build/release/apps/aether_bench --messages 100000 --payload-size 64 --capacity 1024
+./build/release/apps/aether_pub --wal data/sample.wal --messages 1000
+./build/release/apps/aether_inspect_wal --wal data/sample.wal
+./build/release/apps/aether_replay --wal data/sample.wal --limit 10
+./build/release/apps/aether_sub --wal data/sample.wal --limit 10
+```
+
+These are local terminal demos only. They do not add networking, a live inter-process broker, production persistence, or official benchmark claims.
+
 ## Benchmarks
 
 Build benchmark targets manually with:
@@ -243,9 +276,8 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 8 is complete. Planned future work includes:
+Phase 9 is complete. Planned future work begins with Phase 10 metrics and diagnostics, followed by:
 
-- Add CLI tools for publishing, replaying, inspecting WAL files, and running demos.
 - Add metrics and diagnostics.
 - Add CI, sanitizer checks, and packaging.
 - Evaluate advanced low-latency upgrades.
@@ -269,6 +301,7 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Ring buffer design](docs/ring-buffer-design.md)
 - [Memory ordering](docs/memory-ordering.md)
 - [Broker API](docs/broker-api.md)
+- [CLI guide](docs/cli-guide.md)
 - [Benchmark methodology](docs/benchmark-methodology.md)
 - [Performance results](docs/performance-results.md)
 - [Memory-mapped file notes](docs/mmap-notes.md)

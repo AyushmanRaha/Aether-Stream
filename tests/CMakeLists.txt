@@ -26,3 +26,5 @@ aether_add_test(aether_test_wal_reader test_wal_reader.cpp aether.wal.reader)
 
 aether_add_test(aether_test_broker test_broker.cpp aether.broker)
 aether_add_test(aether_test_persistent_broker test_persistent_broker.cpp aether.persistent_broker)
+
+aether_add_test(aether_test_cli_args test_cli_args.cpp aether.cli.args)
