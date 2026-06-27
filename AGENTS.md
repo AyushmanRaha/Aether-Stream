@@ -87,7 +87,7 @@ Do not add Phase 8+ implementation unless the active task explicitly asks for th
 
 ## Do not overclaim
 
-Do not add fake performance numbers, MVP claims, production-ready claims, HFT-ready claims, or wording that implies the broker, WAL, CLI toolkit, metrics, CI, packaging, or persistence already works. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
+Do not add fake performance numbers, MVP claims, production-ready claims, HFT-ready claims, or wording that implies broker-integrated durability, broker runtime recovery, CLI tooling, metrics, CI, packaging, or production persistence is complete. Standalone Phase 7 WAL writer/reader support exists, but it is not yet integrated into a broker and must not be described as a complete broker durability system. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
 
 ## Style rules
 
