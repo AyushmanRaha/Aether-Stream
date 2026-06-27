@@ -6,6 +6,7 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <thread>
 
 namespace {
@@ -35,7 +36,7 @@ struct PayloadStats {
 
 template <std::size_t PayloadBytes, std::size_t Capacity>
 PayloadStats run_payload_transfer(std::uint64_t messages) {
-    aether::SpscRingBuffer<Payload<PayloadBytes>, Capacity> queue;
+    auto queue = std::make_unique<aether::SpscRingBuffer<Payload<PayloadBytes>, Capacity>>();
     std::atomic<std::uint64_t> producer_retries{0};
     std::atomic<std::uint64_t> consumer_retries{0};
     std::atomic<bool> order_valid{true};
@@ -47,7 +48,7 @@ PayloadStats run_payload_transfer(std::uint64_t messages) {
         for (std::uint64_t sequence = 0; sequence < messages;) {
             Payload<PayloadBytes> payload{};
             payload.sequence = sequence;
-            if (queue.try_push(payload)) {
+            if (queue->try_push(payload)) {
                 ++sequence;
                 spin.reset();
             } else {
@@ -62,7 +63,7 @@ PayloadStats run_payload_transfer(std::uint64_t messages) {
         aether::utils::SpinWait spin;
         Payload<PayloadBytes> payload{};
         for (std::uint64_t expected = 0; expected < messages;) {
-            if (queue.try_pop(payload)) {
+            if (queue->try_pop(payload)) {
                 if (payload.sequence != expected) {
                     order_valid.store(false, std::memory_order_relaxed);
                 }
