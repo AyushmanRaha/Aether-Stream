@@ -22,6 +22,7 @@ add_library(
   src/version.cpp
   src/core/status.cpp
   src/io/mmap_file.cpp
+  src/broker.cpp
   src/wal/checksum.cpp
   src/wal/wal_writer.cpp
   src/wal/wal_reader.cpp
@@ -68,6 +69,22 @@ if(AETHER_BUILD_EXAMPLES)
     aether_wal_replay
     PROPERTIES OUTPUT_NAME wal_replay RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
   )
+
+  add_executable(aether_broker_basic examples/broker_basic.cpp)
+  target_link_libraries(aether_broker_basic PRIVATE aether::stream)
+  aether_set_project_warnings(aether_broker_basic)
+  set_target_properties(
+    aether_broker_basic
+    PROPERTIES OUTPUT_NAME broker_basic RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
+  )
+
+  add_executable(aether_persistent_broker examples/persistent_broker.cpp)
+  target_link_libraries(aether_persistent_broker PRIVATE aether::stream)
+  aether_set_project_warnings(aether_persistent_broker)
+  set_target_properties(
+    aether_persistent_broker
+    PROPERTIES OUTPUT_NAME persistent_broker RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
+  )
 endif()
 
 if(AETHER_BUILD_TOOLS)
@@ -89,4 +106,4 @@ if(AETHER_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-message(STATUS "Aether-Stream Phase 7 build configured.")
+message(STATUS "Aether-Stream Phase 8 build configured.")
