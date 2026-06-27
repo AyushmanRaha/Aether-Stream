@@ -17,7 +17,7 @@ include(AetherOptions)
 include(AetherCompilerWarnings)
 include(AetherDependencies)
 
-add_library(aether_stream src/version.cpp src/core/status.cpp)
+add_library(aether_stream src/version.cpp src/core/status.cpp src/io/mmap_file.cpp)
 
 add_library(aether::stream ALIAS aether_stream)
 
@@ -44,6 +44,14 @@ if(AETHER_BUILD_EXAMPLES)
     aether_basic_spsc
     PROPERTIES OUTPUT_NAME basic_spsc RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
   )
+
+  add_executable(aether_mmap_smoke examples/mmap_smoke.cpp)
+  target_link_libraries(aether_mmap_smoke PRIVATE aether::stream)
+  aether_set_project_warnings(aether_mmap_smoke)
+  set_target_properties(
+    aether_mmap_smoke
+    PROPERTIES OUTPUT_NAME mmap_smoke RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples"
+  )
 endif()
 
 if(AETHER_BUILD_TOOLS)
@@ -65,4 +73,4 @@ if(AETHER_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-message(STATUS "Aether-Stream Phase 5 build configured.")
+message(STATUS "Aether-Stream Phase 6 build configured.")

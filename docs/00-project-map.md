@@ -1,14 +1,14 @@
 # Project Map
 
-## Current status: completed through Phase 5
+## Current status: completed through Phase 6
 
-Aether-Stream currently has the Phase 0 through Phase 5 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, and honest benchmark documentation.
+Aether-Stream currently has the Phase 0 through Phase 6 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, honest benchmark documentation, and a POSIX memory-mapped file abstraction.
 
-The repository is still not a complete broker. It does not yet include persistence, a broker API, official measured benchmark results, a CLI toolkit, metrics/diagnostics, CI automation, packaging, or production-readiness claims.
+The repository is still not a complete broker. It does not yet include WAL persistence, a broker API, official measured benchmark results, a CLI toolkit, metrics/diagnostics, CI automation, packaging, or production-readiness claims.
 
 ## Current repository layout
 
-- `README.md` explains the project goal, current Phase 5 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
+- `README.md` explains the project goal, current Phase 6 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
@@ -23,7 +23,7 @@ The repository is still not a complete broker. It does not yet include persisten
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
-- `docs/` contains this project map, the learning roadmap, the SPSC ring-buffer design document, the memory-ordering document, benchmark methodology, and the performance-results template.
+- `docs/` contains this project map, the learning roadmap, the SPSC ring-buffer design document, the memory-ordering document, benchmark methodology, the performance-results template, and mmap notes.
 
 
 ## Current docs
@@ -34,6 +34,7 @@ The repository is still not a complete broker. It does not yet include persisten
 - `docs/memory-ordering.md`: Phase 4 acquire/release memory-ordering protocol for `SpscRingBuffer<T, Capacity>`.
 - `docs/benchmark-methodology.md`: Phase 5 benchmark scope, build mode, runner workflow, raw-output policy, and limitations.
 - `docs/performance-results.md`: template for measured performance results; no official measured numbers are committed yet.
+- `docs/mmap-notes.md`: Phase 6 notes for mmap behavior, `MmapFile` lifecycle, POSIX scope, and non-goals.
 
 ## Build system
 
@@ -43,6 +44,7 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether::stream`: public alias target for consumers.
 - `aether_smoke`: smoke example executable.
 - `aether_basic_spsc`: basic SPSC example executable.
+- `aether_mmap_smoke`: mmap smoke example executable.
 - `aether_stress_spsc`: manual SPSC stress tool.
 - `aether_test_version`: version CTest executable.
 - `aether_test_status`: status CTest executable.
@@ -52,6 +54,7 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_test_spsc_concurrent`: concurrent ordered-transfer CTest executable.
 - `aether_test_spsc_move_only`: move-only payload CTest executable.
 - `aether_test_spsc_stress`: multi-capacity SPSC stress CTest executable.
+- `aether_test_mmap_file`: mmap file CTest executable.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark executable.
 - `aether_bench_spsc_latency`: timestamped SPSC latency benchmark executable.
 - `aether_bench_payload_sizes`: SPSC payload-size comparison benchmark executable.
@@ -72,6 +75,7 @@ Reusable CMake modules are:
 - `include/aether/core/expected.hpp` provides a small C++20 expected-like result wrapper.
 - `include/aether/core/config.hpp` defines queue, WAL, and broker configuration structs with validation helpers, including queue tuning fields used by the current SPSC work.
 - `include/aether/message.hpp` defines the non-owning message header/view model and validation helpers.
+- `include/aether/io/mmap_file.hpp` declares the Phase 6 RAII memory-mapped file wrapper.
 - `include/aether/spsc_ring_buffer.hpp` defines the header-only `SpscRingBuffer<T, Capacity>` for exactly one producer and exactly one consumer.
 - `include/aether/detail/cache_line.hpp` provides cache-line padding/alignment helpers.
 - `include/aether/detail/platform.hpp` provides platform/compiler/architecture detection and a force-inline macro.
@@ -82,11 +86,13 @@ Reusable CMake modules are:
 
 - `src/version.cpp` compiles the version API into the library target.
 - `src/core/status.cpp` compiles stable status names and default messages into the library target.
+- `src/io/mmap_file.cpp` compiles the POSIX mmap implementation into the library target.
 
 ## Examples
 
 - `examples/smoke.cpp` links against `aether::stream` and prints the library version.
 - `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
+- `examples/mmap_smoke.cpp` demonstrates creating, writing, flushing, closing, and reopening a mapped file.
 
 ## Tests
 
@@ -99,7 +105,8 @@ CTest currently covers:
 - SPSC wraparound and rolling push/pop behavior;
 - concurrent SPSC transfer of at least 1,000,000 ordered values between one producer and one consumer;
 - move-only payload support, including `std::unique_ptr<int>` and a custom move-only type;
-- SPSC stress coverage for capacities `64`, `256`, `1024`, and `65536`.
+- SPSC stress coverage for capacities `64`, `256`, `1024`, and `65536`;
+- mmap create/write/flush/close/reopen, move ownership, resize, and destructor-flush behavior in `tests/test_mmap_file.cpp`.
 
 ## Benchmarks
 
@@ -124,10 +131,9 @@ CTest currently covers:
 
 ## What does not exist yet
 
-Phase 6 and later work is not implemented yet. The repository currently has no:
+Phase 7 and later work is not implemented yet. The repository currently has no:
 
 - official measured benchmark-results numbers committed from a controlled run;
-- mmap-backed file layer;
 - WAL writer, reader, recovery, or file-format implementation;
 - broker API or broker runtime;
 - CLI toolkit apps;
@@ -137,7 +143,7 @@ Phase 6 and later work is not implemented yet. The repository currently has no:
 
 ## Next phase
 
-Phase 6 is the next planned phase: memory-mapped file abstraction. That phase should not add WAL, broker behavior, CLI tools, metrics, CI, packaging, or performance claims unless explicitly requested by that phase.
+Phase 7 is the next planned phase: Write-Ahead Log writer and reader. Phase 6 should not be confused with WAL; it only provides the mapped file primitive that later WAL code can build on.
 
 ## Phase boundaries
 
@@ -147,4 +153,5 @@ Phase 6 is the next planned phase: memory-mapped file abstraction. That phase sh
 - Phase 3 completed: header-only SPSC ring buffer v1, cache-line/platform helpers, basic SPSC example, and basic/wraparound SPSC tests.
 - Phase 4 completed: SPSC correctness hardening, move support, approximate sizing, acquire/release memory-order documentation, queue tuning fields, utility helpers, concurrent/move-only/stress tests, and manual stress tool.
 - Phase 5 completed: benchmark framework and honest performance reporting, including Google Benchmark wiring, SPSC benchmark executables, raw result runner, methodology doc, and performance-results template.
-- Phase 6+ later: mmap file abstraction, persistence, WAL, broker behavior, CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 6 completed: memory-mapped file abstraction, including `MmapFile`, POSIX mmap implementation, persistence tests, smoke example, and mmap notes.
+- Phase 7+ later: WAL, broker behavior, CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.

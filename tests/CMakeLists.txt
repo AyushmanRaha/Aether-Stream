@@ -17,3 +17,5 @@ aether_add_test(aether_test_spsc_wraparound test_spsc_wraparound.cpp aether.spsc
 aether_add_test(aether_test_spsc_concurrent test_spsc_concurrent.cpp aether.spsc.concurrent)
 aether_add_test(aether_test_spsc_move_only test_spsc_move_only.cpp aether.spsc.move_only)
 aether_add_test(aether_test_spsc_stress test_spsc_stress.cpp aether.spsc.stress)
+
+aether_add_test(aether_test_mmap_file test_mmap_file.cpp aether.mmap_file)
