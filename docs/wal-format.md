@@ -2,9 +2,11 @@
 
 ## Purpose and scope
 
-The Phase 7 write-ahead log (WAL) is an append-only local persistence format for Aether-Stream message records. It is implemented as a preallocated mmap-backed file and is intended as a foundation for later broker integration.
+The Phase 7 write-ahead log (WAL) is an append-only local persistence format for Aether-Stream message records. Phase 8 now uses this WAL through `aether::PersistentBroker<T, Capacity>`, which serializes trivially copyable event objects into WAL payloads before publishing them to the in-memory SPSC queue.
 
-This document describes Phase 7 only. The WAL is not yet integrated with a broker runtime, recovery index, CLI, file rotation, or multi-segment persistence system.
+This document remains the binary WAL format specification. Broker-level semantics, typed replay, and user-facing API behavior are documented in `docs/broker-api.md`.
+
+The WAL format itself is still generic `MessageView` payload storage. It does not know about C++ event types; `PersistentBroker` is the typed layer that maps trivially copyable objects to payload bytes.
 
 ## File model
 
@@ -55,13 +57,30 @@ The Phase 7 reader performs a sequential scan from the current offset:
 - checksum mismatch returns `StatusCode::corrupted_record`;
 - the reader never reads beyond the mapped file bounds.
 
+## Phase 8 broker integration
+
+`aether::PersistentBroker<T, Capacity>` uses the WAL writer with WAL-before-queue semantics:
+
+1. Check broker validity.
+2. Check queue capacity.
+3. Append the serialized object representation of `T` to the WAL.
+4. Publish the value to the in-memory SPSC queue only after WAL append succeeds.
+
+For typed replay, `PersistentBroker<T, Capacity>::replay(path, visitor)` opens the WAL reader, validates records using the normal WAL reader path, checks that each payload size equals `sizeof(T)`, reconstructs a local `T` with `std::memcpy`, and calls the visitor.
+
+This typed replay is intended for same-program/same-platform replay of trivially copyable event structs. Cross-language schemas, ABI-independent persistence, endian conversion for typed payloads, and schema evolution are not part of Phase 8.
+
 ## Limitations
 
-Phase 7 intentionally does not include:
+Phase 8 broker integration exists through `PersistentBroker`, but the lower-level WAL reader/writer remain standalone and reusable.
 
-- broker integration;
+The WAL layer still intentionally does not include:
+
 - file rotation;
 - multi-segment WAL files;
 - concurrent writer support;
 - recovery indexes;
-- CLI tools.
+- CLI tools;
+- schema evolution for typed broker payloads;
+- cross-language or ABI-independent typed payload encoding;
+- production crash-recovery guarantees beyond the existing explicit flush behavior.
