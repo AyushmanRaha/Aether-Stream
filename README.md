@@ -1,12 +1,12 @@
 # Aether-Stream
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository currently focuses on the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, and write-ahead log foundation that later broker components can build on.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, and WAL-backed persistent broker API.
 
 ## Current status
 
-The repository is complete through Phase 7 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, and append-only WAL writer/reader support.
+The repository is complete through Phase 8 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, and typed replay for trivially copyable persistent broker events.
 
-It is not yet a complete broker. A broker API, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
+It is not production-ready. CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -40,6 +40,15 @@ It is not yet a complete broker. A broker API, CLI toolkit, metrics/diagnostics,
 - The implementation uses acquire/release atomics for producer/consumer publication and cache-line padding for head and tail counters.
 - Move-only payload behavior is tested, including `std::unique_ptr<int>` and a custom move-only object.
 
+### Broker API
+
+- In-memory broker API in `include/aether/broker.hpp`.
+- WAL-backed persistent broker API in `include/aether/persistent_broker.hpp`.
+- `Broker<T, Capacity>` exposes `try_publish`, `try_emplace`, and `try_consume` over the SPSC queue.
+- `PersistentBroker<T, Capacity>` uses WAL-before-queue publishing: a successful publish appends to the WAL before the value becomes visible to the consumer.
+- Typed replay reconstructs trivially copyable event values from WAL records for same-program/same-platform replay.
+- Broker API documentation is in `docs/broker-api.md`.
+
 ### Memory-mapped files
 
 - Public RAII mmap wrapper in `include/aether/io/mmap_file.hpp`, implemented in `src/io/mmap_file.cpp`.
@@ -69,6 +78,8 @@ It is not yet a complete broker. A broker API, CLI toolkit, metrics/diagnostics,
 
 - `examples/smoke.cpp` links against `aether::stream` and prints the library version.
 - `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
+- `examples/broker_basic.cpp` demonstrates the in-memory broker API.
+- `examples/persistent_broker.cpp` demonstrates WAL-backed publish, consume, flush, and typed replay.
 - `examples/mmap_smoke.cpp` demonstrates a small mapped-file create/write/flush/close/reopen flow.
 - `examples/wal_replay.cpp` demonstrates WAL append and sequential replay.
 
@@ -84,6 +95,8 @@ CTest registers standalone test executables for:
 - concurrent SPSC transfer of ordered sequence numbers between one producer and one consumer;
 - move-only payload support, including move-only object behavior;
 - stress coverage that checks multiple queue capacities and preserves order;
+- in-memory broker publish/consume, full/empty handling, order, emplacement, move-only support, and runtime config validation;
+- persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, and typed replay;
 - mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage;
 - WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection.
 
@@ -106,12 +119,13 @@ CTest registers standalone test executables for:
 
 ## What does not exist yet
 
-Planned work that is not currently implemented includes:
+Planned future work that is not currently implemented includes:
 
-- broker API;
 - CLI toolkit;
 - metrics and diagnostics;
-- CI, sanitizers, and packaging.
+- CI, sanitizers, and packaging;
+- advanced low-latency upgrades;
+- final docs and portfolio packaging.
 
 ## Build and test
 
@@ -141,6 +155,13 @@ Run the basic SPSC example:
 ./build/debug/examples/basic_spsc
 ```
 
+Run the broker examples:
+
+```sh
+./build/debug/examples/broker_basic
+./build/debug/examples/persistent_broker
+```
+
 Run the mmap smoke example:
 
 ```sh
@@ -151,6 +172,12 @@ Run the WAL replay example:
 
 ```sh
 ./build/debug/examples/wal_replay
+```
+
+Run only broker-related CTest coverage:
+
+```sh
+ctest --test-dir build/debug --output-on-failure -R broker
 ```
 
 Run only WAL-related CTest coverage:
@@ -216,11 +243,13 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 8 is next. Planned future work includes:
+Phase 8 is complete. Planned future work includes:
 
-- Add broker API over the queue and persistence layer.
 - Add CLI tools for publishing, replaying, inspecting WAL files, and running demos.
-- Add metrics, diagnostics, CI, sanitizers, and packaging.
+- Add metrics and diagnostics.
+- Add CI, sanitizer checks, and packaging.
+- Evaluate advanced low-latency upgrades.
+- Prepare final docs and portfolio packaging.
 
 ## Local setup
 
@@ -239,6 +268,7 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Learning roadmap](docs/01-learning-roadmap.md)
 - [Ring buffer design](docs/ring-buffer-design.md)
 - [Memory ordering](docs/memory-ordering.md)
+- [Broker API](docs/broker-api.md)
 - [Benchmark methodology](docs/benchmark-methodology.md)
 - [Performance results](docs/performance-results.md)
 - [Memory-mapped file notes](docs/mmap-notes.md)
