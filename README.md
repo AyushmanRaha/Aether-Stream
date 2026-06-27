@@ -4,9 +4,9 @@ Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker
 
 ## Current status
 
-The repository is complete through Phase 4 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, and a manual SPSC stress tool.
+The repository is complete through Phase 5 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, and benchmark reporting docs.
 
-It is not yet a complete broker. Persistence, a broker API, benchmark framework and measured results, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet.
+It is not yet a complete broker. Persistence, a broker API, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -16,7 +16,7 @@ It is not yet a complete broker. Persistence, a broker API, benchmark framework 
 - Library target: `aether_stream`.
 - Public alias target for consumers: `aether::stream`.
 - Options for enabling tests, examples, tools, warnings, warnings-as-errors, and benchmark builds.
-- Benchmark support is explicitly not implemented by the current CMake configuration.
+- Google Benchmark is wired only when `AETHER_BUILD_BENCHMARKS=ON`.
 
 ### Core API
 
@@ -65,11 +65,21 @@ CTest registers standalone test executables for:
 - move-only payload support, including move-only object behavior;
 - stress coverage that checks multiple queue capacities and preserves order.
 
+### Benchmarks
+
+- Google Benchmark-based SPSC benchmarks build when `AETHER_BUILD_BENCHMARKS=ON`.
+- `bench_spsc_throughput` measures ordered producer/consumer throughput across queue capacities.
+- `bench_spsc_latency` records approximate timestamped per-message transfer latency distributions.
+- `bench_payload_sizes` compares throughput across 8B, 32B, 64B, 256B, and 1024B payload objects.
+- `docs/benchmark-methodology.md` explains how results should be produced and interpreted.
+- `docs/performance-results.md` is a template for measured results and currently contains no fabricated numbers.
+
 ### Scripts/tooling
 
 - `scripts/run_tests.sh` configures, builds, and runs the local test suite.
 - `scripts/format_all.sh` formats or checks C/C++ files in the repository source directories.
 - `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
+- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and stores raw benchmark output under `benchmark-results/`.
 - `tools/stress_spsc.cpp` provides a manual SPSC stress executable when tools are enabled.
 
 ## What does not exist yet
@@ -79,7 +89,6 @@ Planned work that is not currently implemented includes:
 - broker API;
 - mmap-backed file layer;
 - WAL writer, reader, and recovery behavior;
-- benchmark framework and measured results;
 - CLI toolkit;
 - metrics and diagnostics;
 - CI, sanitizers, and packaging.
@@ -118,6 +127,23 @@ You can also use the local test shortcut:
 ./scripts/run_tests.sh
 ```
 
+## Benchmarks
+
+Build benchmark targets manually with:
+
+```sh
+cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_BENCHMARKS=ON
+cmake --build build/release
+```
+
+Run the reproducible benchmark workflow, including a Release configure/build and CTest pre-check, with:
+
+```sh
+./scripts/run_benchmarks.sh
+```
+
+Raw benchmark outputs are written under `benchmark-results/`. See [Benchmark methodology](docs/benchmark-methodology.md) and [Performance results](docs/performance-results.md). No performance numbers should be reported unless they come from a measured run with raw outputs.
+
 ## Manual stress tool
 
 The manual SPSC stress tool is built when `AETHER_BUILD_TOOLS=ON` is passed to CMake:
@@ -146,9 +172,8 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 5 is next. Planned future work includes:
+Phase 6 is next. Planned future work includes:
 
-- Add benchmark framework and honest measured results.
 - Add mmap-backed file abstraction.
 - Add WAL record format, writer, reader, and recovery behavior.
 - Add broker API over the queue and persistence layer.
@@ -172,6 +197,8 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Learning roadmap](docs/01-learning-roadmap.md)
 - [Ring buffer design](docs/ring-buffer-design.md)
 - [Memory ordering](docs/memory-ordering.md)
+- [Benchmark methodology](docs/benchmark-methodology.md)
+- [Performance results](docs/performance-results.md)
 
 ## License
 

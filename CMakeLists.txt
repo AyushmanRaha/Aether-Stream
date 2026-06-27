@@ -62,7 +62,7 @@ if(AETHER_BUILD_TESTS)
 endif()
 
 if(AETHER_BUILD_BENCHMARKS)
-  message(STATUS "AETHER_BUILD_BENCHMARKS is ON, but benchmarks are planned for Phase 5.")
+  add_subdirectory(benchmarks)
 endif()
 
-message(STATUS "Aether-Stream Phase 4 build configured.")
+message(STATUS "Aether-Stream Phase 5 build configured.")
