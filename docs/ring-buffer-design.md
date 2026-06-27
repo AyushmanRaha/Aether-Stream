@@ -6,7 +6,7 @@ This document describes the Phase 3-4 single-producer/single-consumer (SPSC) que
 
 Phase 5 has since added benchmark infrastructure for measuring this queue, but this file remains the design document for the queue algorithm. See `docs/benchmark-methodology.md` and `docs/performance-results.md` for benchmark process and result reporting.
 
-Aether-Stream is still a library foundation, not a complete broker. The ring buffer is a reusable component that later broker, persistence, and tooling phases may build on, but those later systems are not implemented by this queue document.
+Aether-Stream now has a Phase 8 broker layer, but this document remains focused only on the SPSC queue algorithm. The higher-level broker API is documented in `docs/broker-api.md`. The ring buffer is a reusable component; the queue itself does not own persistence, networking, or WAL logic.
 
 ## Scope and non-goals
 
@@ -27,6 +27,8 @@ Unsupported today:
 - persistence, WAL storage, network transport, or direct mmap integration inside the queue itself;
 - production-ready, HFT-ready, or unsupported performance claims;
 - official committed latency/throughput result tables without raw benchmark output.
+
+The queue itself does not perform persistence, WAL storage, network transport, or direct mmap integration. Phase 8 composes the queue with WAL at the broker layer; see `docs/broker-api.md`.
 
 The manual stress tool is for correctness and stress validation only. It should not be presented as a benchmark result. For performance experiments, use the Phase 5 Google Benchmark executables and preserve raw output from `scripts/run_benchmarks.sh`.
 
@@ -200,6 +202,6 @@ Multiple producers or multiple consumers would break the ownership assumptions a
 
 Phase 5 has added the benchmark framework and honest reporting workflow. Future ring-buffer-related work should use those benchmarks to compare changes against the existing baseline without inventing latency or throughput claims.
 
-Phase 6 has added the standalone mmap file primitive. The SPSC queue remains independent from persistence and does not directly own mapped storage. Phase 7 and later project phases may connect the queue, mmap layer, WAL, broker, CLI, and metrics through higher-level components.
+Phase 6 has added the standalone mmap file primitive. The SPSC queue remains independent from persistence and does not directly own mapped storage. Phase 8 has added the first broker layer that composes this queue with optional WAL persistence. Future queue-specific work should still keep the SPSC primitive independent and benchmark changes against the existing baseline.
 
 Optional advanced queue features, such as batching or zero-copy reservation APIs, should be considered only after measurement shows a real need and after their correctness model is designed carefully.

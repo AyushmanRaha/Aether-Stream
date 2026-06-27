@@ -2,15 +2,15 @@
 
 ## Project summary
 
-Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous message broker library and eventual CLI toolkit. The current repository is a library foundation with an SPSC queue primitive; it is not yet a complete broker.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 8: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, and WAL-backed persistent broker API. It is not production-ready and does not yet include CLI tooling, metrics, CI, packaging, or advanced low-latency APIs.
 
 ## Current phase
 
-Phase 7 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, and Phase 7 WAL writer/reader persistence foundation.
+Phase 8 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, and Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs.
 
 ## Next phase
 
-Phase 8 is next: broker integration. Do not add Phase 8 implementation unless the active task explicitly asks for that phase.
+Phase 9 is next: CLI toolkit and runnable demonstrations. Do not add Phase 9 implementation unless the active task explicitly asks for that phase.
 
 ## Phase boundaries
 
@@ -22,9 +22,10 @@ Phase 8 is next: broker integration. Do not add Phase 8 implementation unless th
 - Phase 5 completed: Google Benchmark wiring, SPSC throughput/latency/payload-size benchmarks, release benchmark runner, raw-result workflow, benchmark methodology doc, and performance-results template.
 - Phase 6 completed: memory-mapped file abstraction, including `MmapFile`, POSIX mmap implementation, persistence tests, mmap smoke example, and mmap notes.
 - Phase 7 completed: WAL record format, CRC32 checksum support, append-only WAL writer, sequential WAL reader, replay example, WAL tests, and format documentation.
-- Phase 8+ later: broker behavior, CLI tools, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 8 completed: in-memory broker API, WAL-backed persistent broker API, WAL-before-queue durability semantics, typed replay for trivially copyable event types, broker examples, broker tests, and broker API documentation.
+- Phase 9+ later: CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
 
-Do not add Phase 8+ implementation unless the active task explicitly asks for that phase.
+Do not add Phase 9+ implementation unless the active task explicitly asks for that phase.
 
 ## Current build targets
 
@@ -34,6 +35,8 @@ Do not add Phase 8+ implementation unless the active task explicitly asks for th
 - `aether_basic_spsc`: basic SPSC example executable when examples are enabled.
 - `aether_mmap_smoke`: mmap smoke example executable when examples are enabled.
 - `aether_wal_replay`: WAL replay example executable when examples are enabled.
+- `aether_broker_basic`: broker example executable when examples are enabled.
+- `aether_persistent_broker`: persistent broker example executable when examples are enabled.
 - `aether_stress_spsc`: manual SPSC stress tool when tools are enabled.
 - `aether_test_version`: version CTest executable when tests are enabled.
 - `aether_test_status`: status CTest executable when tests are enabled.
@@ -47,6 +50,8 @@ Do not add Phase 8+ implementation unless the active task explicitly asks for th
 - `aether_test_wal_record`: WAL record-format CTest executable when tests are enabled.
 - `aether_test_wal_writer`: WAL writer CTest executable when tests are enabled.
 - `aether_test_wal_reader`: WAL reader CTest executable when tests are enabled.
+- `aether_test_broker`: broker CTest executable when tests are enabled.
+- `aether_test_persistent_broker`: persistent broker CTest executable when tests are enabled.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark when benchmarks are enabled.
 - `aether_bench_spsc_latency`: SPSC latency benchmark when benchmarks are enabled.
 - `aether_bench_payload_sizes`: SPSC payload-size benchmark when benchmarks are enabled.
@@ -67,9 +72,15 @@ Do not add Phase 8+ implementation unless the active task explicitly asks for th
 - CRC32 checksum support.
 - Append-only WAL writer.
 - Sequential WAL reader.
+- In-memory broker API (`Broker<T, Capacity>`).
+- WAL-backed persistent broker API (`PersistentBroker<T, Capacity>`).
+- WAL-before-queue publish semantics.
+- Typed replay for trivially copyable persistent broker event types.
 - WAL replay example.
+- Broker examples.
 - Smoke, basic SPSC, and mmap smoke examples.
-- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, mmap file, and WAL tests.
+- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, mmap file, WAL, and broker tests.
+- Broker API documentation.
 - Manual SPSC stress-validation tool.
 - Google Benchmark dependency wiring gated behind `AETHER_BUILD_BENCHMARKS`.
 - SPSC throughput, per-message latency, and payload-size benchmark executables.
@@ -79,7 +90,6 @@ Do not add Phase 8+ implementation unless the active task explicitly asks for th
 ## Do not add unless requested by a phase
 
 - Measured performance claims that are not backed by raw benchmark outputs.
-- Broker implementation or broker APIs.
 - CLI toolkit apps.
 - Metrics or diagnostics systems.
 - GitHub Actions CI, sanitizer job files, packaging, export/install logic, or release automation.
@@ -87,7 +97,7 @@ Do not add Phase 8+ implementation unless the active task explicitly asks for th
 
 ## Do not overclaim
 
-Do not add fake performance numbers, MVP claims, production-ready claims, HFT-ready claims, or wording that implies broker-integrated durability, broker runtime recovery, CLI tooling, metrics, CI, packaging, or production persistence is complete. Standalone Phase 7 WAL writer/reader support exists, but it is not yet integrated into a broker and must not be described as a complete broker durability system. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
+Do not add fake performance numbers, MVP claims, production-ready claims, HFT-ready claims, or wording that implies CLI tooling, metrics, CI, packaging, networking, multi-producer/multi-consumer support, or production persistence is complete. Phase 8 provides a local in-process broker API and WAL-backed persistent broker for trivially copyable event types, but it is not a production broker, not a networked broker, and not a complete crash-recovery system. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
 
 ## Style rules
 
@@ -109,10 +119,13 @@ Useful local commands:
 cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON
 cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
+ctest --test-dir build/debug --output-on-failure -R broker
 ./build/debug/examples/smoke
 ./build/debug/examples/basic_spsc
 ./build/debug/examples/mmap_smoke
 ./build/debug/examples/wal_replay
+./build/debug/examples/broker_basic
+./build/debug/examples/persistent_broker
 ./build/debug/tools/stress_spsc --messages 1000000 --capacity 1024
 ./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
 ```

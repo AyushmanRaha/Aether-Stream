@@ -1,14 +1,14 @@
 # Project Map
 
-## Current status: completed through Phase 7
+## Current status: completed through Phase 8
 
-Aether-Stream currently has the Phase 0 through Phase 7 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, honest benchmark documentation, a POSIX memory-mapped file abstraction, and append-only WAL writer/reader support.
+Aether-Stream currently has the Phase 0 through Phase 8 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, and typed replay for trivially copyable persistent broker event types.
 
-The repository is still not a complete broker. It does not yet include a broker API, official measured benchmark results, a CLI toolkit, metrics/diagnostics, CI automation, packaging, or production-readiness claims.
+The repository now includes the first developer-facing broker layer. It is still not production-ready and does not yet include CLI apps, metrics/diagnostics, CI automation, packaging, advanced low-latency APIs, or official measured benchmark results.
 
 ## Current repository layout
 
-- `README.md` explains the project goal, current Phase 7 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
+- `README.md` explains the project goal, current Phase 8 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
@@ -23,7 +23,7 @@ The repository is still not a complete broker. It does not yet include a broker 
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
-- `docs/` contains this project map, the learning roadmap, SPSC design docs, benchmark docs, mmap notes, and WAL format notes.
+- `docs/` contains this project map, the learning roadmap, SPSC design docs, broker API docs, benchmark docs, mmap notes, and WAL format notes.
 
 ## Current docs
 
@@ -34,7 +34,8 @@ The repository is still not a complete broker. It does not yet include a broker 
 - `docs/benchmark-methodology.md`: Phase 5 benchmark scope, build mode, runner workflow, raw-output policy, and limitations.
 - `docs/performance-results.md`: template for measured performance results; no official measured numbers are committed yet.
 - `docs/mmap-notes.md`: Phase 6 notes for mmap behavior, `MmapFile` lifecycle, POSIX scope, and non-goals.
-- `docs/wal-format.md`: Phase 7 WAL record format, checksum policy, reader behavior, and limitations.
+- `docs/wal-format.md`: Phase 7 WAL record format, checksum policy, reader behavior, Phase 8 persistent broker integration note, and limitations.
+- `docs/broker-api.md`: Phase 8 broker API guide, including in-memory broker usage, persistent broker usage, WAL-before-queue durability semantics, typed replay, SPSC limitation, configuration, and current limitations.
 
 ## Build system
 
@@ -46,6 +47,8 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_basic_spsc`: basic SPSC example executable.
 - `aether_mmap_smoke`: mmap smoke example executable.
 - `aether_wal_replay`: WAL replay example executable.
+- `aether_broker_basic`: in-memory broker example executable.
+- `aether_persistent_broker`: WAL-backed persistent broker example executable.
 - `aether_stress_spsc`: manual SPSC stress tool.
 - `aether_test_version`: version CTest executable.
 - `aether_test_status`: status CTest executable.
@@ -59,6 +62,8 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_test_wal_record`: WAL record-format CTest executable.
 - `aether_test_wal_writer`: WAL writer CTest executable.
 - `aether_test_wal_reader`: WAL reader CTest executable.
+- `aether_test_broker`: in-memory broker CTest executable.
+- `aether_test_persistent_broker`: persistent broker CTest executable.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark executable.
 - `aether_bench_spsc_latency`: timestamped SPSC latency benchmark executable.
 - `aether_bench_payload_sizes`: SPSC payload-size comparison benchmark executable.
@@ -79,6 +84,8 @@ Reusable CMake modules are:
 - `include/aether/core/expected.hpp` provides a small C++20 expected-like result wrapper.
 - `include/aether/core/config.hpp` defines queue, WAL, and broker configuration structs with validation helpers.
 - `include/aether/message.hpp` defines the non-owning message header/view model and validation helpers.
+- `include/aether/broker.hpp` declares the Phase 8 in-memory broker API over the SPSC queue.
+- `include/aether/persistent_broker.hpp` declares the Phase 8 WAL-backed persistent broker API and typed replay helper for trivially copyable event types.
 - `include/aether/io/mmap_file.hpp` declares the Phase 6 RAII memory-mapped file wrapper.
 - `include/aether/wal/record.hpp` defines the Phase 7 WAL record header, record view, and explicit 40-byte serialization helpers.
 - `include/aether/wal/checksum.hpp` declares CRC32 and WAL record checksum helpers.
@@ -94,6 +101,7 @@ Reusable CMake modules are:
 
 - `src/version.cpp` compiles the version API into the library target.
 - `src/core/status.cpp` compiles stable status names and default messages into the library target.
+- `src/broker.cpp` implements broker durability mode naming and broker/PersistentBroker configuration validation helpers.
 - `src/io/mmap_file.cpp` compiles the POSIX mmap implementation into the library target.
 - `src/wal/checksum.cpp` implements CRC32 and WAL record checksum helpers.
 - `src/wal/wal_writer.cpp` implements the append-only mmap-backed WAL writer.
@@ -105,6 +113,8 @@ Reusable CMake modules are:
 - `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
 - `examples/mmap_smoke.cpp` demonstrates creating, writing, flushing, closing, and reopening a mapped file.
 - `examples/wal_replay.cpp` demonstrates writing three WAL records and replaying them sequentially.
+- `examples/broker_basic.cpp` demonstrates publishing and consuming an event through `aether::Broker`.
+- `examples/persistent_broker.cpp` demonstrates WAL-backed publish, consume, flush, and typed replay through `aether::PersistentBroker`.
 
 ## Tests
 
@@ -121,7 +131,9 @@ CTest currently covers:
 - mmap create/write/flush/close/reopen, move ownership, resize, and destructor-flush behavior;
 - WAL record serialization, reserved-byte determinism, header validation, and checksum validation;
 - WAL writer creation, append offsets, sequence assignment, out-of-space handling, flush, and zero-length payloads;
-- WAL reader sequential replay, reset, visitor replay, zero-filled tail EOF, partial-record clean stop, and checksum corruption detection.
+- WAL reader sequential replay, reset, visitor replay, zero-filled tail EOF, partial-record clean stop, and checksum corruption detection;
+- in-memory broker publish/consume, full/empty behavior, FIFO order, `try_emplace`, move-only payload support, and runtime queue capacity validation;
+- persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, flush, and typed replay.
 
 ## Benchmarks
 
@@ -146,18 +158,19 @@ CTest currently covers:
 
 ## What does not exist yet
 
-Phase 8 and later work is not implemented yet. The repository currently has no:
+The following future phases are not implemented yet:
 
 - official measured benchmark-results numbers committed from a controlled run;
-- broker API or broker runtime;
 - CLI toolkit apps;
 - metrics or diagnostics subsystem;
 - GitHub Actions CI, sanitizer jobs, packaging, export/install logic, or release automation;
-- production-ready, HFT-ready, or latency-performance claims.
+- advanced low-latency APIs such as batching, zero-copy reservation, and CPU affinity helpers;
+- final portfolio/release documentation;
+- production-ready, HFT-ready, or unsupported latency-performance claims.
 
 ## Next phase
 
-Phase 8 is the next planned phase: broker integration over the queue and WAL foundation. Phase 7 should not be confused with a complete broker; it only provides an append-only WAL writer/reader and stable record format.
+Phase 9 is the next planned phase: CLI toolkit and runnable demonstrations. Phase 8 completed the first broker integration layer over the queue and WAL foundation, but it did not add terminal apps, metrics, CI, packaging, or production hardening.
 
 ## Phase boundaries
 
@@ -169,4 +182,5 @@ Phase 8 is the next planned phase: broker integration over the queue and WAL fou
 - Phase 5 completed: benchmark framework and honest performance reporting, including Google Benchmark wiring, SPSC benchmark executables, raw result runner, methodology doc, and performance-results template.
 - Phase 6 completed: memory-mapped file abstraction, including `MmapFile`, POSIX mmap implementation, persistence tests, smoke example, and mmap notes.
 - Phase 7 completed: WAL record format, CRC32 checksum support, append-only WAL writer, sequential WAL reader, replay example, tests, and WAL format documentation.
-- Phase 8+ later: broker behavior, CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 8 completed: in-memory broker API, WAL-backed persistent broker API, WAL-before-queue durability semantics, typed replay for trivially copyable event types, broker examples, broker tests, and broker API documentation.
+- Phase 9+ later: CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
