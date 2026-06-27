@@ -170,6 +170,8 @@ The script checks for local tools and creates lightweight build directories. It 
 
 - [Project map](docs/00-project-map.md)
 - [Learning roadmap](docs/01-learning-roadmap.md)
+- [Ring buffer design](docs/ring-buffer-design.md)
+- [Memory ordering](docs/memory-ordering.md)
 
 ## License
 
