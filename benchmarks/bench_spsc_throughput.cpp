@@ -76,7 +76,8 @@ template <std::size_t Capacity> void benchmark_throughput(benchmark::State& stat
         const double elapsed_seconds = stopwatch.elapsed_seconds();
         state.SetIterationTime(elapsed_seconds);
 
-        benchmark::DoNotOptimize(stats.checksum);
+        auto checksum = stats.checksum;
+        benchmark::DoNotOptimize(checksum);
         benchmark::ClobberMemory();
 
         if (!stats.order_valid) {

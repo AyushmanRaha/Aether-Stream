@@ -11,9 +11,13 @@
 namespace {
 
 template <std::size_t Bytes> struct Payload {
-    static_assert(Bytes >= sizeof(std::uint64_t));
+    static_assert(Bytes > sizeof(std::uint64_t));
     std::uint64_t sequence{};
     std::array<std::byte, Bytes - sizeof(std::uint64_t)> data{};
+};
+
+template <> struct Payload<sizeof(std::uint64_t)> {
+    std::uint64_t sequence{};
 };
 
 static_assert(sizeof(Payload<8>) == 8);
@@ -90,7 +94,8 @@ void benchmark_payload_size(benchmark::State& state) {
         const double elapsed_seconds = stopwatch.elapsed_seconds();
         state.SetIterationTime(elapsed_seconds);
 
-        benchmark::DoNotOptimize(stats.checksum);
+        auto checksum = stats.checksum;
+        benchmark::DoNotOptimize(checksum);
         benchmark::ClobberMemory();
 
         if (!stats.order_valid) {
