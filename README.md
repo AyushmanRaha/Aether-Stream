@@ -4,9 +4,9 @@ Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker
 
 ## Current status
 
-The repository is complete through Phase 5 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, and benchmark reporting docs.
+The repository is complete through Phase 6 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, and a POSIX memory-mapped file abstraction.
 
-It is not yet a complete broker. Persistence, a broker API, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
+It is not yet a complete broker. WAL persistence, a broker API, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -40,6 +40,15 @@ It is not yet a complete broker. Persistence, a broker API, CLI toolkit, metrics
 - The implementation uses acquire/release atomics for producer/consumer publication and cache-line padding for head and tail counters.
 - Move-only payload behavior is tested, including `std::unique_ptr<int>` and a custom move-only object.
 
+
+### Memory-mapped files
+
+- Public RAII mmap wrapper in `include/aether/io/mmap_file.hpp`, implemented in `src/io/mmap_file.cpp`.
+- POSIX `mmap` resource handling is isolated behind `aether::io::MmapFile`.
+- Supported operations include create, open existing, flush, resize, close, byte-span access, and move-only ownership transfer.
+- Persistence behavior is covered by a standalone CTest test.
+- `examples/mmap_smoke.cpp` demonstrates creating, flushing, closing, and reopening a mapped file.
+
 ### Utilities
 
 - Cache-line padding utility in `include/aether/detail/cache_line.hpp`.
@@ -51,6 +60,7 @@ It is not yet a complete broker. Persistence, a broker API, CLI toolkit, metrics
 
 - `examples/smoke.cpp` links against `aether::stream` and prints the library version.
 - `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
+- `examples/mmap_smoke.cpp` demonstrates a small mapped-file create/write/flush/close/reopen flow.
 
 ### Tests
 
@@ -63,7 +73,8 @@ CTest registers standalone test executables for:
 - SPSC wraparound and rolling push/pop behavior;
 - concurrent SPSC transfer of ordered sequence numbers between one producer and one consumer;
 - move-only payload support, including move-only object behavior;
-- stress coverage that checks multiple queue capacities and preserves order.
+- stress coverage that checks multiple queue capacities and preserves order;
+- mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage.
 
 ### Benchmarks
 
@@ -87,7 +98,6 @@ CTest registers standalone test executables for:
 Planned work that is not currently implemented includes:
 
 - broker API;
-- mmap-backed file layer;
 - WAL writer, reader, and recovery behavior;
 - CLI toolkit;
 - metrics and diagnostics;
@@ -119,6 +129,18 @@ Run the basic SPSC example:
 
 ```sh
 ./build/debug/examples/basic_spsc
+```
+
+Run the mmap smoke example:
+
+```sh
+./build/debug/examples/mmap_smoke
+```
+
+Run only mmap-related CTest coverage:
+
+```sh
+ctest --test-dir build/debug --output-on-failure -R mmap
 ```
 
 You can also use the local test shortcut:
@@ -172,10 +194,9 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 6 is next. Planned future work includes:
+Phase 7 is next. Planned future work includes:
 
-- Add mmap-backed file abstraction.
-- Add WAL record format, writer, reader, and recovery behavior.
+- Add WAL record format, writer, reader, and recovery behavior on top of the Phase 6 mmap primitive.
 - Add broker API over the queue and persistence layer.
 - Add CLI tools for publishing, replaying, inspecting WAL files, and running demos.
 - Add metrics, diagnostics, CI, sanitizers, and packaging.
@@ -199,6 +220,7 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Memory ordering](docs/memory-ordering.md)
 - [Benchmark methodology](docs/benchmark-methodology.md)
 - [Performance results](docs/performance-results.md)
+- [Memory-mapped file notes](docs/mmap-notes.md)
 
 ## License
 

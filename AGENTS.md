@@ -6,11 +6,11 @@ Aether-Stream is a planned C++20 ultra-low-latency lock-free asynchronous messag
 
 ## Current phase
 
-Phase 5 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, and Phase 5 benchmark framework and honest performance-reporting docs.
+Phase 6 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, and Phase 6 memory-mapped file abstraction.
 
 ## Next phase
 
-Phase 6 is next: memory-mapped file abstraction. Do not add Phase 6 implementation unless the active task explicitly asks for that phase.
+Phase 7 is next: WAL writer/reader. Do not add Phase 7 implementation unless the active task explicitly asks for that phase.
 
 ## Phase boundaries
 
@@ -20,9 +20,10 @@ Phase 6 is next: memory-mapped file abstraction. Do not add Phase 6 implementati
 - Phase 3 completed: header-only SPSC ring buffer v1, cache-line/platform helpers, basic SPSC example, and SPSC basic/wraparound tests.
 - Phase 4 completed: SPSC hardening with move support, `size_approx`, acquire/release memory-order comments, queue tuning fields, utility helpers, concurrent/move-only/stress tests, and manual SPSC stress tool.
 - Phase 5 completed: Google Benchmark wiring, SPSC throughput/latency/payload-size benchmarks, release benchmark runner, raw-result workflow, benchmark methodology doc, and performance-results template.
-- Phase 6+ later: mmap file abstraction, persistence, WAL, broker behavior, CLI tools, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 6 completed: memory-mapped file abstraction, including `MmapFile`, POSIX mmap implementation, persistence tests, mmap smoke example, and mmap notes.
+- Phase 7+ later: WAL, broker behavior, CLI tools, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
 
-Do not add Phase 6+ implementation unless the active task explicitly asks for that phase.
+Do not add Phase 7+ implementation unless the active task explicitly asks for that phase.
 
 ## Current build targets
 
@@ -30,6 +31,7 @@ Do not add Phase 6+ implementation unless the active task explicitly asks for th
 - `aether::stream`: alias target for consumers.
 - `aether_smoke`: smoke example executable when examples are enabled.
 - `aether_basic_spsc`: basic SPSC example executable when examples are enabled.
+- `aether_mmap_smoke`: mmap smoke example executable when examples are enabled.
 - `aether_stress_spsc`: manual SPSC stress tool when tools are enabled.
 - `aether_test_version`: version CTest executable when tests are enabled.
 - `aether_test_status`: status CTest executable when tests are enabled.
@@ -39,6 +41,7 @@ Do not add Phase 6+ implementation unless the active task explicitly asks for th
 - `aether_test_spsc_concurrent`: concurrent ordered-transfer SPSC CTest executable when tests are enabled.
 - `aether_test_spsc_move_only`: move-only payload SPSC CTest executable when tests are enabled.
 - `aether_test_spsc_stress`: multi-capacity SPSC stress CTest executable when tests are enabled.
+- `aether_test_mmap_file`: mmap file CTest executable when tests are enabled.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark when benchmarks are enabled.
 - `aether_bench_spsc_latency`: SPSC latency benchmark when benchmarks are enabled.
 - `aether_bench_payload_sizes`: SPSC payload-size benchmark when benchmarks are enabled.
@@ -54,8 +57,9 @@ Do not add Phase 6+ implementation unless the active task explicitly asks for th
 - Header-only SPSC ring buffer for exactly one producer and exactly one consumer.
 - Cache-line and platform detail helpers.
 - Clock and thread utility helpers.
-- Smoke and basic SPSC examples.
-- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, and SPSC stress tests.
+- RAII POSIX memory-mapped file wrapper (`MmapFile`).
+- Smoke, basic SPSC, and mmap smoke examples.
+- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, and mmap file tests.
 - Manual SPSC stress-validation tool.
 - Google Benchmark dependency wiring gated behind `AETHER_BUILD_BENCHMARKS`.
 - SPSC throughput, per-message latency, and payload-size benchmark executables.
@@ -65,7 +69,6 @@ Do not add Phase 6+ implementation unless the active task explicitly asks for th
 ## Do not add unless requested by a phase
 
 - Measured performance claims that are not backed by raw benchmark outputs.
-- mmap file abstraction or persistence layers.
 - WAL implementation.
 - Broker implementation or broker APIs.
 - CLI toolkit apps.
@@ -99,6 +102,7 @@ cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
 ./build/debug/examples/smoke
 ./build/debug/examples/basic_spsc
+./build/debug/examples/mmap_smoke
 ./build/debug/tools/stress_spsc --messages 1000000 --capacity 1024
 ./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
 ```
