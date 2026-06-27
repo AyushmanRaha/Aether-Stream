@@ -4,6 +4,8 @@
 
 This document describes the Phase 3-4 single-producer/single-consumer (SPSC) queue currently implemented in `include/aether/spsc_ring_buffer.hpp`.
 
+Phase 5 has since added benchmark infrastructure for measuring this queue, but this file remains the design document for the queue algorithm. See `docs/benchmark-methodology.md` and `docs/performance-results.md` for benchmark process and result reporting.
+
 Aether-Stream is still a library foundation, not a complete broker. The ring buffer is a reusable component that later broker, persistence, and tooling phases may build on, but those later systems are not implemented by this queue document.
 
 ## Scope and non-goals
@@ -23,9 +25,10 @@ Unsupported today:
 - blocking wait APIs;
 - cross-process queues;
 - persistence, `mmap`, WAL storage, or network transport;
-- benchmark claims or measured latency/throughput results.
+- production-ready, HFT-ready, or unsupported performance claims;
+- official committed latency/throughput result tables without raw benchmark output.
 
-The manual stress tool is for correctness and stress validation only. It should not be presented as a benchmark result.
+The manual stress tool is for correctness and stress validation only. It should not be presented as a benchmark result. For performance experiments, use the Phase 5 Google Benchmark executables and preserve raw output from `scripts/run_benchmarks.sh`.
 
 ## Public API overview
 
@@ -157,7 +160,7 @@ When the queue is empty, `try_pop()` returns `false` instead of blocking. Caller
 
 The reason is false-sharing avoidance. The producer frequently writes `head_`, while the consumer frequently writes `tail_`. If both atomics lived on the same cache line, two CPU cores could repeatedly invalidate each other's cache line even though they mostly own different counters. Separating the counters makes that layout intention explicit.
 
-This is a design choice, not a measured performance claim. Phase 5 is the planned place for benchmark infrastructure and honest performance reporting.
+This is a design choice, not a standalone performance claim. Phase 5 now provides benchmark infrastructure for measuring SPSC behavior, but any reported performance interpretation must be tied to raw benchmark output and the documented methodology.
 
 ## Correctness tests
 
@@ -170,6 +173,15 @@ Current tests and tools relevant to the SPSC queue:
 - `tests/test_spsc_stress.cpp`: runs ordered-transfer stress coverage across multiple compile-time capacities.
 - `tools/stress_spsc.cpp`: provides a manual stress-validation tool with selectable message counts and supported capacities. It reports elapsed time and retry counts for operator visibility, but it is not a benchmark framework and its output is not a benchmark result.
 
+Phase 5 benchmark files relevant to this queue are:
+
+- `benchmarks/bench_spsc_throughput.cpp`: measures ordered producer/consumer throughput across queue capacities.
+- `benchmarks/bench_spsc_latency.cpp`: records approximate timestamped transfer latency distributions.
+- `benchmarks/bench_payload_sizes.cpp`: compares fixed-size payload objects across selected capacities.
+- `scripts/run_benchmarks.sh`: runs the Release benchmark workflow and stores raw outputs under `benchmark-results/`.
+
+These benchmarks complement correctness tests; they do not replace them.
+
 ## Limitations
 
 Current limitations are intentional for this phase:
@@ -179,13 +191,13 @@ Current limitations are intentional for this phase:
 - No batch push/pop API.
 - No zero-copy reservation/commit API.
 - No persistence or cross-process storage.
-- No measured performance results yet.
+- No official measured performance results are committed in `docs/performance-results.md` yet.
 - `size_approx()` is approximate under concurrency and is not a synchronization barrier.
 
 Multiple producers or multiple consumers would break the ownership assumptions around `head_` and `tail_`. Use this queue only under the one-producer/one-consumer contract.
 
 ## Future work
 
-Phase 5 is planned to add a benchmark framework and honest performance reporting. That work should measure behavior without fake latency or throughput claims.
+Phase 5 has added the benchmark framework and honest reporting workflow. Future ring-buffer-related work should use those benchmarks to compare changes against the existing baseline without inventing latency or throughput claims.
 
-Later phases may integrate the queue into broker and WAL work. Optional advanced features, such as batching or zero-copy reservation APIs, should be considered only after measurement shows a real need and after their correctness model is designed carefully.
+Phase 6 and later project phases may integrate the queue with mmap, WAL, broker, CLI, and metrics work. Optional advanced features, such as batching or zero-copy reservation APIs, should be considered only after measurement shows a real need and after their correctness model is designed carefully.
