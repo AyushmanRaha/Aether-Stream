@@ -1,14 +1,14 @@
 # Project Map
 
-## Current status: completed through Phase 4
+## Current status: completed through Phase 5
 
-Aether-Stream currently has the Phase 0 through Phase 4 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, and a manual SPSC stress tool.
+Aether-Stream currently has the Phase 0 through Phase 5 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, and honest benchmark documentation.
 
-The repository is still not a complete broker. It does not yet include persistence, a broker API, measured benchmark results, a CLI toolkit, metrics/diagnostics, CI automation, packaging, or production-readiness claims.
+The repository is still not a complete broker. It does not yet include persistence, a broker API, official measured benchmark results, a CLI toolkit, metrics/diagnostics, CI automation, packaging, or production-readiness claims.
 
 ## Current repository layout
 
-- `README.md` explains the project goal, current Phase 4 status, build/test commands, examples, and explicit non-goals for the current implementation.
+- `README.md` explains the project goal, current Phase 5 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
@@ -19,10 +19,11 @@ The repository is still not a complete broker. It does not yet include persisten
 - `include/aether/` contains public library headers.
 - `src/` contains compiled library implementation files.
 - `examples/` contains small usage examples.
+- `benchmarks/` contains Google Benchmark-based Phase 5 SPSC benchmark executables.
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
-- `docs/` contains this project map, the learning roadmap, the SPSC ring-buffer design document, and the memory-ordering document.
+- `docs/` contains this project map, the learning roadmap, the SPSC ring-buffer design document, the memory-ordering document, benchmark methodology, and the performance-results template.
 
 
 ## Current docs
@@ -31,6 +32,8 @@ The repository is still not a complete broker. It does not yet include persisten
 - `docs/01-learning-roadmap.md`: study path for contributors learning the project phase by phase.
 - `docs/ring-buffer-design.md`: Phase 3-4 SPSC ring-buffer design, API, slot lifecycle, tests, limitations, and future work.
 - `docs/memory-ordering.md`: Phase 4 acquire/release memory-ordering protocol for `SpscRingBuffer<T, Capacity>`.
+- `docs/benchmark-methodology.md`: Phase 5 benchmark scope, build mode, runner workflow, raw-output policy, and limitations.
+- `docs/performance-results.md`: template for measured performance results; no official measured numbers are committed yet.
 
 ## Build system
 
@@ -49,14 +52,17 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_test_spsc_concurrent`: concurrent ordered-transfer CTest executable.
 - `aether_test_spsc_move_only`: move-only payload CTest executable.
 - `aether_test_spsc_stress`: multi-capacity SPSC stress CTest executable.
+- `aether_bench_spsc_throughput`: SPSC throughput benchmark executable.
+- `aether_bench_spsc_latency`: timestamped SPSC latency benchmark executable.
+- `aether_bench_payload_sizes`: SPSC payload-size comparison benchmark executable.
 
 Reusable CMake modules are:
 
-- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, benchmark placeholder wiring, warnings, and warnings-as-errors.
+- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, benchmark option wiring, warnings, and warnings-as-errors.
 - `cmake/AetherCompilerWarnings.cmake`: project warning flags for selected targets.
-- `cmake/AetherDependencies.cmake`: centralized dependency setup; it currently finds only threads and does not fetch third-party packages.
+- `cmake/AetherDependencies.cmake`: centralized dependency setup; it always finds threads and resolves Google Benchmark only when `AETHER_BUILD_BENCHMARKS=ON`.
 
-`AETHER_BUILD_BENCHMARKS` is intentionally a Phase 5 placeholder. Turning it on does not add benchmark dependencies or benchmark targets.
+`AETHER_BUILD_BENCHMARKS` enables the Phase 5 Google Benchmark dependency wiring and benchmark targets. Benchmark executables are separate from CTest targets and are emitted under `${CMAKE_BINARY_DIR}/benchmarks`.
 
 ## Public headers
 
@@ -95,6 +101,14 @@ CTest currently covers:
 - move-only payload support, including `std::unique_ptr<int>` and a custom move-only type;
 - SPSC stress coverage for capacities `64`, `256`, `1024`, and `65536`.
 
+## Benchmarks
+
+- `benchmarks/bench_spsc_throughput.cpp` measures ordered SPSC throughput for capacities 64, 256, 1024, and 65536.
+- `benchmarks/bench_spsc_latency.cpp` measures approximate timestamped SPSC transfer latency for capacities 1024 and 65536.
+- `benchmarks/bench_payload_sizes.cpp` compares payload objects sized 8B, 32B, 64B, 256B, and 1024B for capacities 1024 and 65536.
+- `scripts/run_benchmarks.sh` configures a Release build, runs CTest, runs all benchmarks, and stores text/JSON outputs plus environment metadata under `benchmark-results/YYYYMMDD-HHMMSS/`.
+- The performance-results document is a template until measured outputs are intentionally copied from raw result files.
+
 ## Tools
 
 - `tools/stress_spsc.cpp` builds as `aether_stress_spsc` when `AETHER_BUILD_TOOLS=ON`.
@@ -105,14 +119,14 @@ CTest currently covers:
 
 - `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
 - `scripts/run_tests.sh` configures, builds, and runs the local CTest suite.
+- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and captures raw benchmark outputs.
 - `scripts/format_all.sh` formats or checks C/C++ files in known source directories.
 
 ## What does not exist yet
 
-Phase 5 and later work is not implemented yet. The repository currently has no:
+Phase 6 and later work is not implemented yet. The repository currently has no:
 
-- benchmark framework or measured benchmark-results document;
-- benchmark dependency such as Google Benchmark;
+- official measured benchmark-results numbers committed from a controlled run;
 - mmap-backed file layer;
 - WAL writer, reader, recovery, or file-format implementation;
 - broker API or broker runtime;
@@ -123,7 +137,7 @@ Phase 5 and later work is not implemented yet. The repository currently has no:
 
 ## Next phase
 
-Phase 5 is the next planned phase: benchmark framework and honest performance reporting. That phase should add measurement infrastructure and reporting only when explicitly requested, and it must avoid fake or marketing-style performance claims.
+Phase 6 is the next planned phase: memory-mapped file abstraction. That phase should not add WAL, broker behavior, CLI tools, metrics, CI, packaging, or performance claims unless explicitly requested by that phase.
 
 ## Phase boundaries
 
@@ -132,5 +146,5 @@ Phase 5 is the next planned phase: benchmark framework and honest performance re
 - Phase 2 completed: core public types, status/error handling, expected-like wrapper, configuration structs, message model, and status/message tests.
 - Phase 3 completed: header-only SPSC ring buffer v1, cache-line/platform helpers, basic SPSC example, and basic/wraparound SPSC tests.
 - Phase 4 completed: SPSC correctness hardening, move support, approximate sizing, acquire/release memory-order documentation, queue tuning fields, utility helpers, concurrent/move-only/stress tests, and manual stress tool.
-- Phase 5 next: benchmark framework and honest performance reporting, only when explicitly requested.
-- Phase 6+ later: persistence, WAL, broker behavior, CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 5 completed: benchmark framework and honest performance reporting, including Google Benchmark wiring, SPSC benchmark executables, raw result runner, methodology doc, and performance-results template.
+- Phase 6+ later: mmap file abstraction, persistence, WAL, broker behavior, CLI toolkit, metrics/diagnostics, CI, packaging, release work, and advanced tuning.

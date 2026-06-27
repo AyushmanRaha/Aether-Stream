@@ -1,11 +1,26 @@
 include_guard(GLOBAL)
 
-# Phase 4 intentionally has no external dependencies beyond platform threads.
-# Current tests are tiny CTest executables with custom mains.
-#
-# Future phases may add dependency setup here only when explicitly requested,
-# for example Google Benchmark during Phase 5 benchmark work.
-#
 # Keep third-party dependency logic isolated in this file.
+# Google Benchmark is only resolved when Phase 5 benchmark targets are enabled.
 
 find_package(Threads REQUIRED)
+
+if(AETHER_BUILD_BENCHMARKS)
+  find_package(benchmark CONFIG QUIET)
+
+  if(NOT benchmark_FOUND)
+    include(FetchContent)
+
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(
+      googlebenchmark
+      GIT_REPOSITORY https://github.com/google/benchmark.git
+      GIT_TAG v1.9.5
+    )
+
+    FetchContent_MakeAvailable(googlebenchmark)
+  endif()
+endif()
