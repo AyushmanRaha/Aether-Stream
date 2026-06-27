@@ -1,12 +1,12 @@
 # Aether-Stream
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository currently focuses on the reusable library foundation, message representation, and a single-producer/single-consumer queue primitive that later broker components can build on.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository currently focuses on the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, and write-ahead log foundation that later broker components can build on.
 
 ## Current status
 
-The repository is complete through Phase 6 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, and a POSIX memory-mapped file abstraction.
+The repository is complete through Phase 7 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, and append-only WAL writer/reader support.
 
-It is not yet a complete broker. WAL persistence, a broker API, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
+It is not yet a complete broker. A broker API, CLI toolkit, metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -40,7 +40,6 @@ It is not yet a complete broker. WAL persistence, a broker API, CLI toolkit, met
 - The implementation uses acquire/release atomics for producer/consumer publication and cache-line padding for head and tail counters.
 - Move-only payload behavior is tested, including `std::unique_ptr<int>` and a custom move-only object.
 
-
 ### Memory-mapped files
 
 - Public RAII mmap wrapper in `include/aether/io/mmap_file.hpp`, implemented in `src/io/mmap_file.cpp`.
@@ -48,6 +47,16 @@ It is not yet a complete broker. WAL persistence, a broker API, CLI toolkit, met
 - Supported operations include create, open existing, flush, resize, close, byte-span access, and move-only ownership transfer.
 - Persistence behavior is covered by a standalone CTest test.
 - `examples/mmap_smoke.cpp` demonstrates creating, flushing, closing, and reopening a mapped file.
+
+### WAL persistence
+
+- Stable Phase 7 record format in `include/aether/wal/record.hpp` with explicit 40-byte little-endian serialization.
+- CRC32 checksum helpers in `include/aether/wal/checksum.hpp` and `src/wal/checksum.cpp`.
+- Append-only WAL writer in `include/aether/wal/wal_writer.hpp` and `src/wal/wal_writer.cpp`.
+- Sequential WAL reader and replay helper in `include/aether/wal/wal_reader.hpp` and `src/wal/wal_reader.cpp`.
+- WAL format documentation in `docs/wal-format.md`.
+- `examples/wal_replay.cpp` demonstrates writing three records and replaying them.
+- WAL tests cover record serialization, checksum behavior, writer appends, reader replay, zero-filled tails, partial records, and checksum corruption detection.
 
 ### Utilities
 
@@ -61,6 +70,7 @@ It is not yet a complete broker. WAL persistence, a broker API, CLI toolkit, met
 - `examples/smoke.cpp` links against `aether::stream` and prints the library version.
 - `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
 - `examples/mmap_smoke.cpp` demonstrates a small mapped-file create/write/flush/close/reopen flow.
+- `examples/wal_replay.cpp` demonstrates WAL append and sequential replay.
 
 ### Tests
 
@@ -74,7 +84,8 @@ CTest registers standalone test executables for:
 - concurrent SPSC transfer of ordered sequence numbers between one producer and one consumer;
 - move-only payload support, including move-only object behavior;
 - stress coverage that checks multiple queue capacities and preserves order;
-- mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage.
+- mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage;
+- WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection.
 
 ### Benchmarks
 
@@ -98,7 +109,6 @@ CTest registers standalone test executables for:
 Planned work that is not currently implemented includes:
 
 - broker API;
-- WAL writer, reader, and recovery behavior;
 - CLI toolkit;
 - metrics and diagnostics;
 - CI, sanitizers, and packaging.
@@ -135,6 +145,18 @@ Run the mmap smoke example:
 
 ```sh
 ./build/debug/examples/mmap_smoke
+```
+
+Run the WAL replay example:
+
+```sh
+./build/debug/examples/wal_replay
+```
+
+Run only WAL-related CTest coverage:
+
+```sh
+ctest --test-dir build/debug --output-on-failure -R wal
 ```
 
 Run only mmap-related CTest coverage:
@@ -194,9 +216,8 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 7 is next. Planned future work includes:
+Phase 8 is next. Planned future work includes:
 
-- Add WAL record format, writer, reader, and recovery behavior on top of the Phase 6 mmap primitive.
 - Add broker API over the queue and persistence layer.
 - Add CLI tools for publishing, replaying, inspecting WAL files, and running demos.
 - Add metrics, diagnostics, CI, sanitizers, and packaging.
@@ -221,6 +242,7 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Benchmark methodology](docs/benchmark-methodology.md)
 - [Performance results](docs/performance-results.md)
 - [Memory-mapped file notes](docs/mmap-notes.md)
+- [WAL format](docs/wal-format.md)
 
 ## License
 
