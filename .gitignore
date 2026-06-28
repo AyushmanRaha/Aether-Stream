@@ -46,6 +46,3 @@ compile_commands.json
 CMakeUserPresets.json
 .cache/
 benchmark-results/
-
-# macOS metadata
-.DS_Store
