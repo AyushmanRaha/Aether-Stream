@@ -13,3 +13,8 @@ option(AETHER_BUILD_APPS "Build Aether-Stream CLI apps" ${AETHER_DEVELOPER_MODE_
 option(AETHER_BUILD_BENCHMARKS "Build Aether-Stream benchmarks" OFF)
 option(AETHER_ENABLE_WARNINGS "Enable compiler warnings for Aether-Stream targets" ON)
 option(AETHER_ENABLE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+option(AETHER_ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(AETHER_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+option(AETHER_ENABLE_TSAN "Enable ThreadSanitizer" OFF)
+option(AETHER_ENABLE_CLANG_TIDY "Enable clang-tidy during builds" OFF)
+option(AETHER_ENABLE_INSTALL "Enable install/export package rules" ${AETHER_DEVELOPER_MODE_DEFAULT})
