@@ -29,6 +29,8 @@ aether_add_test(aether_test_counters test_counters.cpp aether.metrics.counters)
 aether_add_test(aether_test_latency_histogram test_latency_histogram.cpp aether.metrics.latency_histogram)
 
 aether_add_test(aether_test_broker test_broker.cpp aether.broker)
+aether_add_test(aether_test_batch_broker test_batch_broker.cpp aether.batch_broker)
+aether_add_test(aether_test_zero_copy_spsc test_zero_copy_spsc.cpp aether.zero_copy_spsc)
 aether_add_test(aether_test_persistent_broker test_persistent_broker.cpp aether.persistent_broker)
 
 aether_add_test(aether_test_cli_args test_cli_args.cpp aether.cli.args)

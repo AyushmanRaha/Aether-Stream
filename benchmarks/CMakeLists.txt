@@ -21,3 +21,13 @@ set_target_properties(aether_bench_payload_sizes PROPERTIES OUTPUT_NAME bench_pa
 
 aether_add_benchmark(aether_bench_broker_end_to_end bench_broker_end_to_end.cpp)
 set_target_properties(aether_bench_broker_end_to_end PROPERTIES OUTPUT_NAME bench_broker_end_to_end)
+
+
+aether_add_benchmark(aether_bench_batch_publish bench_batch_publish.cpp)
+set_target_properties(aether_bench_batch_publish PROPERTIES OUTPUT_NAME bench_batch_publish)
+
+aether_add_benchmark(aether_bench_zero_copy_spsc bench_zero_copy_spsc.cpp)
+set_target_properties(aether_bench_zero_copy_spsc PROPERTIES OUTPUT_NAME bench_zero_copy_spsc)
+
+aether_add_benchmark(aether_bench_spin_wait bench_spin_wait.cpp)
+set_target_properties(aether_bench_spin_wait PROPERTIES OUTPUT_NAME bench_spin_wait)
