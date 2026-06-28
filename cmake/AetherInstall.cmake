@@ -14,7 +14,11 @@ install(
   INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(
+  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  PATTERN ".DS_Store" EXCLUDE
+)
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/AetherStreamConfigVersion.cmake"

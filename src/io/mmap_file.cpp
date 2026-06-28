@@ -116,7 +116,7 @@ Expected<MmapFile> MmapFile::open_existing(const std::filesystem::path& path,
         return Status{StatusCode::io_error, open_failed_detail};
     }
 
-    struct stat file_stat {};
+    struct stat file_stat{};
     if (::fstat(fd, &file_stat) == -1) {
         static_cast<void>(::close(fd));
         return Status{StatusCode::io_error, fstat_failed_detail};
