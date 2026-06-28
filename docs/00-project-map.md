@@ -1,21 +1,25 @@
 # Project Map
 
-## Current status: completed through Phase 10
+## Current status: completed through Phase 11
 
-Aether-Stream currently has the Phase 0 through Phase 10 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, and typed replay for trivially copyable persistent broker event types, Phase 9 CLI apps, and Phase 10 metrics/diagnostics.
+Aether-Stream currently has the Phase 0 through Phase 11 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, typed replay for trivially copyable persistent broker event types, Phase 9 CLI apps, Phase 10 metrics/diagnostics, and Phase 11 GitHub Actions CI, sanitizer/static-analysis workflows, benchmark smoke workflow, and CMake install/export package support.
 
-The repository now includes the first developer-facing broker layer. It is still not production-ready and does not yet include CI automation, packaging, advanced low-latency APIs, or official measured benchmark results.
+The repository now includes the first developer-facing broker layer. It is still not production-ready. CI, sanitizer jobs, clang-tidy integration, benchmark smoke checks, and CMake package install/export support now exist, but advanced low-latency APIs and final portfolio/release documentation are still future work. No official measured benchmark results have been committed.
 
 ## Current repository layout
 
-- `README.md` explains the project goal, current Phase 10 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
+- `README.md` explains the project goal, current Phase 11 status, build/test/benchmark/quality commands, examples, and explicit non-goals for the current implementation.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
 - `.clang-format` defines the C++ formatting style.
+- `.clang-tidy` defines a moderate static-analysis configuration.
+- `CONTRIBUTING.md` documents contributor build, test, format, sanitizer, and clang-tidy guidance.
+- `CHANGELOG.md` tracks unreleased changes.
 - `AGENTS.md` gives coding agents concise current context, build targets, phase boundaries, and no-overclaim rules.
-- `.github/CODEOWNERS` contains repository ownership metadata only; there is no GitHub Actions CI setup yet.
-- `cmake/` contains reusable CMake modules.
+- `.github/CODEOWNERS` contains repository ownership metadata.
+- `.github/workflows/` contains `ci.yml`, `sanitizer.yml`, and `benchmark-smoke.yml` for Phase 11 quality automation.
+- `cmake/` contains reusable CMake modules, including Phase 11 sanitizer, install, and package config support.
 - `include/aether/` contains public library headers, including `include/aether/metrics/` for Phase 10 metrics APIs.
 - `apps/` contains Phase 9 CLI demo applications.
 - `src/` contains compiled library implementation files.
@@ -24,7 +28,7 @@ The repository now includes the first developer-facing broker layer. It is still
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
-- `docs/` contains this project map, the learning roadmap, SPSC design docs, broker API docs, benchmark docs, mmap notes, and WAL format notes.
+- `docs/` contains this project map, the learning roadmap, SPSC design docs, broker API docs, CLI docs, metrics docs, benchmark docs, mmap notes, WAL format notes, and the release checklist.
 
 ## Current docs
 
@@ -39,6 +43,13 @@ The repository now includes the first developer-facing broker layer. It is still
 - `docs/broker-api.md`: broker API guide, including in-memory broker usage, persistent broker usage, WAL-before-queue durability semantics, typed replay, Phase 10 metrics APIs, SPSC limitation, configuration, and current limitations.
 - `docs/cli-guide.md`: Phase 9 CLI app guide, demo flow, and Phase 10 CLI metrics output.
 - `docs/metrics.md`: Phase 10 metrics, snapshots, WAL/recovery counters, and latency histogram guide.
+- `docs/release-checklist.md`: pre-release verification checklist.
+
+Root-level project docs/config:
+
+- `CONTRIBUTING.md`: contributor build, test, format, sanitizer, and clang-tidy guidance.
+- `CHANGELOG.md`: unreleased change tracking.
+- `.clang-tidy`: moderate static-analysis configuration.
 
 ## Build system
 
@@ -82,13 +93,30 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 
 Reusable CMake modules are:
 
-- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, CLI apps, benchmarks, warnings, and warnings-as-errors.
+- `cmake/AetherOptions.cmake`: developer-mode defaults and build options for tests, examples, tools, CLI apps, benchmarks, warnings, warnings-as-errors, ASAN, UBSAN, TSAN, clang-tidy, and install/export support.
 - `cmake/AetherCompilerWarnings.cmake`: project warning flags for selected targets.
 - `cmake/AetherDependencies.cmake`: centralized dependency setup; it always finds threads and resolves Google Benchmark only when `AETHER_BUILD_BENCHMARKS=ON`.
+- `cmake/AetherSanitizers.cmake`: centralized ASAN/UBSAN/TSAN flag wiring.
+- `cmake/AetherInstall.cmake`: install/export/package rule setup.
+- `cmake/AetherStreamConfig.cmake.in`: installed package config template for `find_package(AetherStream CONFIG REQUIRED)`.
 
 `AETHER_BUILD_APPS` enables the Phase 9 CLI app targets and emits them under `${CMAKE_BINARY_DIR}/apps`.
 
 `AETHER_BUILD_BENCHMARKS` enables Google Benchmark dependency wiring plus the Phase 5 SPSC and Phase 10 broker benchmark targets. Benchmark executables are separate from CTest targets and are emitted under `${CMAKE_BINARY_DIR}/benchmarks`.
+
+## Quality automation and packaging
+
+Phase 11 adds repository-level quality automation:
+
+- `.github/workflows/ci.yml` runs formatting checks, Ubuntu/macOS Debug and Release builds, CTest, clang-tidy, and package install smoke verification.
+- `.github/workflows/sanitizer.yml` runs ASAN/UBSAN and TSAN builds on Ubuntu.
+- `.github/workflows/benchmark-smoke.yml` builds benchmark targets and runs short smoke executions to catch benchmark breakage.
+- `.clang-tidy` defines a moderate static-analysis profile.
+- `cmake/AetherSanitizers.cmake` centralizes sanitizer flags.
+- `cmake/AetherInstall.cmake` installs public headers and exports the package as `AetherStream`.
+- `cmake/AetherStreamConfig.cmake.in` lets consumer projects use `find_package(AetherStream CONFIG REQUIRED)` and link `aether::stream`.
+
+These checks improve maintainability and verification, but they do not make the project production-ready or create official benchmark claims.
 
 ## Public headers
 
@@ -191,17 +219,18 @@ CTest currently covers:
 
 ## What does not exist yet
 
-The following future phases are not implemented yet:
+The following future work is not implemented yet:
 
 - official measured benchmark-results numbers committed from a controlled run;
-- GitHub Actions CI, sanitizer jobs, packaging, export/install logic, or release automation;
-- advanced low-latency APIs such as batching, zero-copy reservation, and CPU affinity helpers;
-- final portfolio/release documentation;
-- production-ready, HFT-ready, or unsupported latency-performance claims.
+- advanced low-latency APIs such as batching, zero-copy reservation, specialized spin-wait tuning APIs, and CPU affinity helpers;
+- final portfolio/release documentation and diagrams;
+- networking or a live inter-process broker service;
+- MPSC/MPMC queues;
+- production-ready, HFT-ready, or unsupported latency/performance guarantees.
 
 ## Next phase
 
-Phase 11 is next: CI, sanitizers, static analysis, and packaging. The project still has no CI, packaging, networking, or production hardening.
+Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy reservation, spin-wait tuning, and CPU-affinity helpers. These should not be implemented until the Phase 11 CI/package/static-analysis baseline remains stable.
 
 ## Phase boundaries
 
@@ -216,4 +245,6 @@ Phase 11 is next: CI, sanitizers, static analysis, and packaging. The project st
 - Phase 8 completed: in-memory broker API, WAL-backed persistent broker API, WAL-before-queue durability semantics, typed replay for trivially copyable event types, broker examples, broker tests, and broker API documentation.
 - Phase 9 completed: CLI toolkit and runnable terminal demonstrations.
 - Phase 10 completed: metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, docs, and broker end-to-end benchmark.
-- Phase 11+ later: CI, packaging, release work, and advanced tuning.
+- Phase 11 completed: GitHub Actions CI, sanitizer workflow, clang-tidy static analysis, benchmark smoke workflow, CMake sanitizer options, install/export package rules, contributing guide, changelog, and release checklist.
+- Phase 12 later: advanced low-latency upgrades.
+- Phase 13 later: final documentation, portfolio packaging, diagrams, and release notes.
