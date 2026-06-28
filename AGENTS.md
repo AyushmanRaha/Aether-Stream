@@ -2,15 +2,15 @@
 
 ## Project summary
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 10: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, WAL-backed persistent broker API, Phase 9 CLI toolkit, and Phase 10 metrics/diagnostics/observability. It is not production-ready and does not yet include CI, packaging, or advanced low-latency APIs.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 11: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, WAL-backed persistent broker API, Phase 9 CLI toolkit, Phase 10 metrics/diagnostics/observability, and Phase 11 CI/sanitizer/static-analysis/package verification. It is not production-ready and does not yet include advanced low-latency APIs, final portfolio packaging, networking, or official measured benchmark claims.
 
 ## Current phase
 
-Phase 10 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs, plus Phase 9 CLI argument parsing helpers, five CLI apps, CLI args tests, CLI guide, README demo flow, Phase 10 metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, metrics docs, and broker end-to-end benchmark.
+Phase 11 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs, plus Phase 9 CLI argument parsing helpers, five CLI apps, CLI args tests, CLI guide, README demo flow, Phase 10 metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, metrics docs, broker end-to-end benchmark, and Phase 11 GitHub Actions CI, sanitizer workflow, benchmark smoke workflow, CMake sanitizer options, clang-tidy integration, install/export package support, contributing guide, changelog, and release checklist.
 
 ## Next phase
 
-Phase 11 is next: CI, sanitizers, static analysis, and packaging. Do not add Phase 11+ implementation unless the active task explicitly asks for that phase.
+Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy reservation APIs, spin-wait/backoff tuning, and CPU affinity helpers. Do not add Phase 12 implementation unless the active task explicitly asks for Phase 12.
 
 ## Phase boundaries
 
@@ -25,9 +25,9 @@ Phase 11 is next: CI, sanitizers, static analysis, and packaging. Do not add Pha
 - Phase 8 completed: in-memory broker API, WAL-backed persistent broker API, WAL-before-queue durability semantics, typed replay for trivially copyable event types, broker examples, broker tests, and broker API documentation.
 - Phase 9 completed: CLI argument parsing helpers, `aether_bench`, `aether_pub`, `aether_sub`, `aether_replay`, `aether_inspect_wal`, CLI args tests, CLI guide, and README demo flow.
 - Phase 10 completed: metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, docs, and broker end-to-end benchmark.
-- Phase 11+ later: CI, packaging, release work, and advanced tuning.
-
-Do not add Phase 11+ implementation unless the active task explicitly asks for that phase.
+- Phase 11 completed: GitHub Actions CI, sanitizer jobs, clang-tidy static analysis, benchmark smoke workflow, CMake sanitizer configuration, CMake install/export package support, contributor guide, changelog, and release checklist.
+- Phase 12 later: advanced low-latency APIs and tuning.
+- Phase 13 later: final documentation, portfolio packaging, diagrams, and release notes.
 
 ## Current build targets
 
@@ -110,16 +110,29 @@ Do not add Phase 11+ implementation unless the active task explicitly asks for t
 - SPSC throughput, per-message latency, payload-size, and broker end-to-end benchmark executables.
 - Release-mode benchmark runner script with raw outputs under `benchmark-results/`.
 - Benchmark methodology and performance-results template docs.
+- GitHub Actions CI workflow at `.github/workflows/ci.yml`.
+- GitHub Actions sanitizer workflow at `.github/workflows/sanitizer.yml` for ASAN/UBSAN and TSAN.
+- GitHub Actions benchmark smoke workflow at `.github/workflows/benchmark-smoke.yml`.
+- Moderate clang-tidy configuration in `.clang-tidy`.
+- Centralized sanitizer CMake module in `cmake/AetherSanitizers.cmake`.
+- CMake install/export package rules in `cmake/AetherInstall.cmake`.
+- Installed package config template in `cmake/AetherStreamConfig.cmake.in`.
+- Contributor guide in `CONTRIBUTING.md`.
+- Unreleased change tracking in `CHANGELOG.md`.
+- Pre-release verification checklist in `docs/release-checklist.md`.
+- CMake options `AETHER_ENABLE_ASAN`, `AETHER_ENABLE_UBSAN`, `AETHER_ENABLE_TSAN`, `AETHER_ENABLE_CLANG_TIDY`, and `AETHER_ENABLE_INSTALL`.
 
 ## Do not add unless requested by a phase
 
 - Measured performance claims that are not backed by raw benchmark outputs.
-- GitHub Actions CI, sanitizer job files, packaging, export/install logic, or release automation.
-- External dependencies.
+- Phase 12 advanced low-latency APIs such as batching, zero-copy reservation, spin-wait tuning APIs, CPU affinity helpers, or MPMC queues.
+- Phase 13 portfolio/release assets such as final diagrams, release notes, or final benchmark tables unless explicitly requested.
+- Networking, IPC broker service behavior, or live inter-process subscriptions.
+- New external dependencies unless the active phase explicitly asks for them.
 
 ## Do not overclaim
 
-Do not add fake performance numbers, MVP claims, production-ready claims, HFT-ready claims, or wording that implies CI, packaging, networking, multi-producer/multi-consumer support, live inter-process broker subscriptions, or production persistence is complete. Phase 10 provides local terminal demos, WAL inspection/replay tools, and in-process metrics/diagnostics only. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
+Do not add fake performance numbers, production-ready claims, HFT-ready claims, or wording that implies networking, multi-producer/multi-consumer support, live inter-process broker subscriptions, production persistence, or official benchmark results are complete. Phase 11 provides CI, sanitizers, clang-tidy, benchmark smoke checks, and CMake package install/export support, but these verification tools do not make the project production-ready. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
 
 ## Style rules
 
@@ -130,7 +143,7 @@ Do not add fake performance numbers, MVP claims, production-ready claims, HFT-re
 
 ## Expected future layout
 
-Future phases may expand `tools/`, `cmake/`, `docs/`, `scripts/`, and `.github/workflows/` as needed. `apps/` already contains the Phase 9 CLI toolkit with Phase 10 metrics output. Do not create future-phase docs or directories early unless explicitly requested.
+Future phases may expand `include/aether/`, `src/`, `tests/`, `benchmarks/`, and `docs/` for advanced low-latency APIs and final portfolio documentation. `.github/workflows/` already contains Phase 11 CI, sanitizer, and benchmark smoke workflows. Do not create future-phase docs or directories early unless explicitly requested.
 
 ## Local verification
 
@@ -161,6 +174,25 @@ ctest --test-dir build/debug --output-on-failure -R "counter|histogram|metrics"
 ./build/debug/apps/aether_sub --wal data/sample.wal --limit 3
 ./build/release/benchmarks/bench_broker_end_to_end --benchmark_min_time=0.1s
 ./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
+
+# Phase 11 quality checks
+./scripts/format_all.sh --check
+
+cmake -S . -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_ASAN=ON -DAETHER_ENABLE_UBSAN=ON
+cmake --build build/asan
+ctest --test-dir build/asan --output-on-failure
+
+cmake -S . -B build/tsan -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_TSAN=ON
+cmake --build build/tsan
+ctest --test-dir build/tsan --output-on-failure
+
+cmake -S . -B build/tidy -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON -DAETHER_BUILD_APPS=ON -DAETHER_ENABLE_CLANG_TIDY=ON
+cmake --build build/tidy
+
+cmake -S . -B build/package -G Ninja -DCMAKE_BUILD_TYPE=Release -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_INSTALL=ON
+cmake --build build/package
+ctest --test-dir build/package --output-on-failure
+cmake --install build/package --prefix install/aether
 ```
 
 ## Cost/limit efficiency
