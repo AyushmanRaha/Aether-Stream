@@ -3,6 +3,8 @@
 #include <aether/core/config.hpp>
 #include <aether/core/status.hpp>
 #include <aether/core/types.hpp>
+#include <aether/metrics/counters.hpp>
+#include <aether/metrics/snapshot.hpp>
 #include <aether/spsc_ring_buffer.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -51,16 +53,31 @@ public:
         return config_status_.is_ok();
     }
 
+    [[nodiscard]] metrics::BrokerMetricsSnapshot metrics_snapshot() const noexcept {
+        return counters_.snapshot();
+    }
+
+    [[nodiscard]] metrics::BrokerMetricsSnapshot snapshot() const noexcept {
+        return metrics_snapshot();
+    }
+
+    void reset_metrics() noexcept {
+        counters_.reset();
+    }
+
     [[nodiscard]] Status
     try_publish(const T& value) noexcept(std::is_nothrow_copy_constructible_v<T>)
         requires(std::is_copy_constructible_v<T>)
     {
         if (!valid()) {
+            counters_.record_publish_failed_invalid();
             return config_status_;
         }
         if (!queue_.try_push(value)) {
+            counters_.record_publish_failed_full();
             return Status{StatusCode::full, "broker queue is full"};
         }
+        counters_.record_published();
         return Status::ok();
     }
 
@@ -68,11 +85,14 @@ public:
         requires(std::is_move_constructible_v<T>)
     {
         if (!valid()) {
+            counters_.record_publish_failed_invalid();
             return config_status_;
         }
         if (!queue_.try_push(std::move(value))) {
+            counters_.record_publish_failed_full();
             return Status{StatusCode::full, "broker queue is full"};
         }
+        counters_.record_published();
         return Status::ok();
     }
 
@@ -82,11 +102,14 @@ public:
         requires(std::is_constructible_v<T, Args...>)
     {
         if (!valid()) {
+            counters_.record_publish_failed_invalid();
             return config_status_;
         }
         if (!queue_.try_emplace(std::forward<Args>(args)...)) {
+            counters_.record_publish_failed_full();
             return Status{StatusCode::full, "broker queue is full"};
         }
+        counters_.record_published();
         return Status::ok();
     }
 
@@ -94,11 +117,14 @@ public:
         requires(std::is_move_assignable_v<T>)
     {
         if (!valid()) {
+            counters_.record_consume_failed_invalid();
             return config_status_;
         }
         if (!queue_.try_pop(out)) {
+            counters_.record_consume_failed_empty();
             return Status{StatusCode::empty, "broker queue is empty"};
         }
+        counters_.record_consumed();
         return Status::ok();
     }
 
@@ -121,6 +147,7 @@ public:
 private:
     Status config_status_{Status::ok()};
     SpscRingBuffer<T, Capacity> queue_{};
+    metrics::BrokerCounters counters_{};
 };
 
 } // namespace aether

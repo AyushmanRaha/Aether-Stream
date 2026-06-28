@@ -54,6 +54,8 @@ int main() {
         failures += check(broker.try_publish(OrderEvent{1, 10.0, 3}).code() ==
                               aether::StatusCode::invalid_argument,
                           "unopened publish returns invalid_argument");
+        failures += check(broker.metrics_snapshot().publish_failed_invalid == 1,
+                          "unopened publish increments invalid metric");
     }
 
     {
@@ -91,6 +93,10 @@ int main() {
 
         failures += check(broker.try_publish(expected[0], 0xA).is_ok(),
                           "first persistent publish succeeds");
+        auto metrics = broker.metrics_snapshot();
+        failures += check(metrics.published == 1 && metrics.wal_records_written == 1 &&
+                              metrics.wal_bytes_written > 0,
+                          "persistent publish increments publish and WAL metrics");
         failures += check(broker.wal_records_written() == 1, "records written increments to one");
         failures += check(broker.wal_next_sequence() == 1, "next sequence increments to one");
         failures += check(broker.try_publish(expected[1], 0xB).is_ok(),
@@ -110,7 +116,12 @@ int main() {
         OrderEvent out{};
         failures += check(broker.try_consume(out).code() == aether::StatusCode::empty,
                           "persistent empty consume returns empty");
+        metrics = broker.metrics_snapshot();
+        failures += check(metrics.consumed == expected.size() && metrics.consume_failed_empty == 1,
+                          "persistent consume metrics increment");
         failures += check(broker.flush().is_ok(), "persistent broker flush succeeds");
+        failures +=
+            check(broker.metrics_snapshot().wal_flushes == 1, "persistent flush increments metric");
     }
 
     {
@@ -140,6 +151,21 @@ int main() {
 
     {
         std::uint64_t visited = 0;
+        aether::metrics::BrokerCounters replay_counters;
+        const aether::Status metrics_replay_status =
+            aether::PersistentBroker<OrderEvent, 8>::replay_with_metrics(
+                path,
+                [&](const OrderEvent&, const aether::wal::WalRecordHeader&) {
+                    ++visited;
+                    return aether::Status::ok();
+                },
+                replay_counters);
+        failures += check(metrics_replay_status.is_ok(), "typed replay with metrics succeeds");
+        failures += check(visited == expected.size(), "typed replay with metrics visits all");
+        failures += check(replay_counters.snapshot().recovered_records == expected.size(),
+                          "typed replay metrics count recovered records");
+
+        visited = 0;
         const aether::Status replay_status = aether::PersistentBroker<OrderEvent, 8>::replay(
             path, [&](const OrderEvent& event, const aether::wal::WalRecordHeader& header) {
                 const auto index = static_cast<std::size_t>(header.sequence);
@@ -179,6 +205,9 @@ int main() {
             check(broker.try_publish(expected[1]).is_ok(), "full test second publish succeeds");
         failures += check(broker.try_publish(expected[2]).code() == aether::StatusCode::full,
                           "full queue returns full");
+        const auto metrics = broker.metrics_snapshot();
+        failures += check(metrics.publish_failed_full == 1 && metrics.wal_records_written == 2,
+                          "full queue increments full metric without WAL append");
         failures += check(broker.flush().is_ok(), "full-queue broker flush succeeds");
     }
     {

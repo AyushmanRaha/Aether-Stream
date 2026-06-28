@@ -1,4 +1,5 @@
 #include <aether/cli/args.hpp>
+#include <aether/metrics/counters.hpp>
 #include <aether/wal/wal_reader.hpp>
 #include <cctype>
 #include <iostream>
@@ -37,6 +38,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     auto reader = std::move(reader_result).value();
+    aether::metrics::BrokerCounters counters;
     std::uint64_t records{};
     while (options.limit == 0 || records < options.limit) {
         auto record = reader.next();
@@ -44,6 +46,7 @@ int main(int argc, char** argv) {
             if (record.status().code() == aether::StatusCode::empty) {
                 break;
             }
+            counters.record_recovery_failure();
             print_error(record.status());
             return 1;
         }
@@ -54,7 +57,11 @@ int main(int argc, char** argv) {
                   << " checksum=" << view.header.checksum << " preview=\""
                   << preview(view.payload, options.payload_preview_bytes) << "\"\n";
         ++records;
+        counters.record_recovered_record();
     }
+    const auto metrics = counters.snapshot();
     std::cout << "summary: records replayed=" << records
-              << " final offset=" << reader.current_offset() << '\n';
+              << " final offset=" << reader.current_offset() << '\n'
+              << "metrics.recovered_records: " << metrics.recovered_records << '\n'
+              << "metrics.recovery_failures: " << metrics.recovery_failures << '\n';
 }

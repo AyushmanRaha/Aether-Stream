@@ -1,14 +1,14 @@
 # Project Map
 
-## Current status: completed through Phase 9
+## Current status: completed through Phase 10
 
-Aether-Stream currently has the Phase 0 through Phase 9 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, and typed replay for trivially copyable persistent broker event types, and Phase 9 CLI apps.
+Aether-Stream currently has the Phase 0 through Phase 10 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, and typed replay for trivially copyable persistent broker event types, Phase 9 CLI apps, and Phase 10 metrics/diagnostics.
 
-The repository now includes the first developer-facing broker layer. It is still not production-ready and does not yet include metrics/diagnostics, CI automation, packaging, advanced low-latency APIs, or official measured benchmark results.
+The repository now includes the first developer-facing broker layer. It is still not production-ready and does not yet include CI automation, packaging, advanced low-latency APIs, or official measured benchmark results.
 
 ## Current repository layout
 
-- `README.md` explains the project goal, current Phase 9 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
+- `README.md` explains the project goal, current Phase 10 status, build/test/benchmark commands, examples, and explicit non-goals for the current implementation.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
@@ -16,7 +16,7 @@ The repository now includes the first developer-facing broker layer. It is still
 - `AGENTS.md` gives coding agents concise current context, build targets, phase boundaries, and no-overclaim rules.
 - `.github/CODEOWNERS` contains repository ownership metadata only; there is no GitHub Actions CI setup yet.
 - `cmake/` contains reusable CMake modules.
-- `include/aether/` contains public library headers.
+- `include/aether/` contains public library headers, including `include/aether/metrics/` for Phase 10 metrics APIs.
 - `apps/` contains Phase 9 CLI demo applications.
 - `src/` contains compiled library implementation files.
 - `examples/` contains small usage examples.
@@ -38,6 +38,7 @@ The repository now includes the first developer-facing broker layer. It is still
 - `docs/wal-format.md`: Phase 7 WAL record format, checksum policy, reader behavior, Phase 8 persistent broker integration note, and limitations.
 - `docs/broker-api.md`: Phase 8 broker API guide, including in-memory broker usage, persistent broker usage, WAL-before-queue durability semantics, typed replay, SPSC limitation, configuration, and current limitations.
 - `docs/cli-guide.md`: Phase 9 CLI app guide and demo flow.
+- `docs/metrics.md`: Phase 10 metrics, snapshots, WAL/recovery counters, and latency histogram guide.
 
 ## Build system
 
@@ -182,7 +183,6 @@ CTest currently covers:
 The following future phases are not implemented yet:
 
 - official measured benchmark-results numbers committed from a controlled run;
-- metrics or diagnostics subsystem;
 - GitHub Actions CI, sanitizer jobs, packaging, export/install logic, or release automation;
 - advanced low-latency APIs such as batching, zero-copy reservation, and CPU affinity helpers;
 - final portfolio/release documentation;
@@ -190,7 +190,7 @@ The following future phases are not implemented yet:
 
 ## Next phase
 
-Phase 10 is the next planned phase: metrics and diagnostics. Phase 9 added terminal apps, but the project still has no CI, packaging, networking, or production hardening.
+Phase 10 is complete: metrics and diagnostics. The project still has no CI, packaging, networking, or production hardening.
 
 ## Phase boundaries
 
@@ -204,4 +204,5 @@ Phase 10 is the next planned phase: metrics and diagnostics. Phase 9 added termi
 - Phase 7 completed: WAL record format, CRC32 checksum support, append-only WAL writer, sequential WAL reader, replay example, tests, and WAL format documentation.
 - Phase 8 completed: in-memory broker API, WAL-backed persistent broker API, WAL-before-queue durability semantics, typed replay for trivially copyable event types, broker examples, broker tests, and broker API documentation.
 - Phase 9 completed: CLI toolkit and runnable terminal demonstrations.
-- Phase 10+ later: metrics/diagnostics, CI, packaging, release work, and advanced tuning.
+- Phase 10 completed: metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, docs, and broker end-to-end benchmark.
+- Phase 11+ later: CI, packaging, release work, and advanced tuning.

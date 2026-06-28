@@ -22,6 +22,7 @@ add_library(
   src/version.cpp
   src/core/status.cpp
   src/io/mmap_file.cpp
+  src/metrics/latency_histogram.cpp
   src/broker.cpp
   src/cli/args.cpp
   src/wal/checksum.cpp
@@ -125,4 +126,4 @@ if(AETHER_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-message(STATUS "Aether-Stream Phase 9 build configured.")
+message(STATUS "Aether-Stream Phase 10 build configured.")

@@ -16,3 +16,7 @@ set_target_properties(aether_bench_spsc_latency PROPERTIES OUTPUT_NAME bench_sps
 
 aether_add_benchmark(aether_bench_payload_sizes bench_payload_sizes.cpp)
 set_target_properties(aether_bench_payload_sizes PROPERTIES OUTPUT_NAME bench_payload_sizes)
+
+
+aether_add_benchmark(aether_bench_broker_end_to_end bench_broker_end_to_end.cpp)
+set_target_properties(aether_bench_broker_end_to_end PROPERTIES OUTPUT_NAME bench_broker_end_to_end)

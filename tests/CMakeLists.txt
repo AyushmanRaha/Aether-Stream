@@ -24,6 +24,9 @@ aether_add_test(aether_test_wal_record test_wal_record.cpp aether.wal.record)
 aether_add_test(aether_test_wal_writer test_wal_writer.cpp aether.wal.writer)
 aether_add_test(aether_test_wal_reader test_wal_reader.cpp aether.wal.reader)
 
+aether_add_test(aether_test_counters test_counters.cpp aether.metrics.counters)
+aether_add_test(aether_test_latency_histogram test_latency_histogram.cpp aether.metrics.latency_histogram)
+
 aether_add_test(aether_test_broker test_broker.cpp aether.broker)
 aether_add_test(aether_test_persistent_broker test_persistent_broker.cpp aether.persistent_broker)
 

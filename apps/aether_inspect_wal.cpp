@@ -1,4 +1,5 @@
 #include <aether/cli/args.hpp>
+#include <aether/metrics/counters.hpp>
 #include <aether/wal/record.hpp>
 #include <aether/wal/wal_reader.hpp>
 #include <iostream>
@@ -30,6 +31,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     auto reader = std::move(reader_result).value();
+    aether::metrics::BrokerCounters counters;
     std::uint64_t count{};
     std::uint64_t total_payload{};
     std::uint64_t first_sequence = std::numeric_limits<std::uint64_t>::max();
@@ -40,6 +42,7 @@ int main(int argc, char** argv) {
             if (record.status().code() == aether::StatusCode::empty) {
                 break;
             }
+            counters.record_recovery_failure();
             std::cout << "scan ended with corruption/error at offset " << reader.current_offset()
                       << '\n';
             print_error(record.status());
@@ -59,11 +62,15 @@ int main(int argc, char** argv) {
                       << '\n';
         }
         ++count;
+        counters.record_recovered_record();
     }
+    const auto metrics = counters.snapshot();
     std::cout << "record count: " << count << '\n'
               << "total payload bytes: " << total_payload << '\n'
               << "first sequence: " << (count == 0 ? 0 : first_sequence) << '\n'
               << "last sequence: " << (count == 0 ? 0 : last_sequence) << '\n'
               << "final reader offset: " << reader.current_offset() << '\n'
-              << "scan ended cleanly: yes\n";
+              << "scan ended cleanly: yes\n"
+              << "metrics.recovered_records: " << metrics.recovered_records << '\n'
+              << "metrics.recovery_failures: " << metrics.recovery_failures << '\n';
 }
