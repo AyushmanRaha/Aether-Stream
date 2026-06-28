@@ -40,14 +40,22 @@ TODO: `benchmark-results/<timestamp>/`
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
 
+## Broker end-to-end results table
+
+| Benchmark | Mode | Capacity | Payload bytes | Messages/items | Items/s | WAL bytes written | WAL records written | Raw file |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
+
 ## Interpretation notes
 
 TODO: Add interpretation only after measured raw outputs exist. Keep notes specific to the hardware, OS, build type, and benchmark command used for the run.
 
 ## Limitations
 
-- These results are intended to describe the Phase 5 SPSC queue benchmarks only.
-- Do not treat them as broker, WAL, persistence, CLI, network, or end-to-end latency results.
+- These results are not currently official measured numbers.
+- SPSC tables describe queue benchmarks.
+- The broker end-to-end table is for the Phase 10 local broker benchmark once measured.
+- Do not treat broker end-to-end results as networking, IPC, production persistence, or HFT claims.
 - Debug builds must not be reported.
 - Laptop, macOS, thermally constrained, or busy-system results should be labeled as development measurements.
 - Do not add production-ready or HFT-ready claims.

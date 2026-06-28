@@ -109,5 +109,6 @@ write_environment
 run_benchmark bench_spsc_throughput
 run_benchmark bench_spsc_latency
 run_benchmark bench_payload_sizes
+run_benchmark bench_broker_end_to_end
 
 echo "==> Benchmark raw outputs written to: ${RESULT_DIR}"

@@ -20,7 +20,7 @@ The repository now includes the first developer-facing broker layer. It is still
 - `apps/` contains Phase 9 CLI demo applications.
 - `src/` contains compiled library implementation files.
 - `examples/` contains small usage examples.
-- `benchmarks/` contains Google Benchmark-based Phase 5 SPSC benchmark executables.
+- `benchmarks/` contains Google Benchmark-based Phase 5 SPSC benchmark executables and the Phase 10 broker end-to-end benchmark.
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
@@ -32,12 +32,12 @@ The repository now includes the first developer-facing broker layer. It is still
 - `docs/01-learning-roadmap.md`: study path for contributors learning the project phase by phase.
 - `docs/ring-buffer-design.md`: Phase 3-4 SPSC ring-buffer design, API, slot lifecycle, tests, limitations, and future work.
 - `docs/memory-ordering.md`: Phase 4 acquire/release memory-ordering protocol for `SpscRingBuffer<T, Capacity>`.
-- `docs/benchmark-methodology.md`: Phase 5 benchmark scope, build mode, runner workflow, raw-output policy, and limitations.
+- `docs/benchmark-methodology.md`: Phase 5 SPSC and Phase 10 broker benchmark scope, build mode, runner workflow, raw-output policy, and limitations.
 - `docs/performance-results.md`: template for measured performance results; no official measured numbers are committed yet.
 - `docs/mmap-notes.md`: Phase 6 notes for mmap behavior, `MmapFile` lifecycle, POSIX scope, and non-goals.
 - `docs/wal-format.md`: Phase 7 WAL record format, checksum policy, reader behavior, Phase 8 persistent broker integration note, and limitations.
-- `docs/broker-api.md`: Phase 8 broker API guide, including in-memory broker usage, persistent broker usage, WAL-before-queue durability semantics, typed replay, SPSC limitation, configuration, and current limitations.
-- `docs/cli-guide.md`: Phase 9 CLI app guide and demo flow.
+- `docs/broker-api.md`: broker API guide, including in-memory broker usage, persistent broker usage, WAL-before-queue durability semantics, typed replay, Phase 10 metrics APIs, SPSC limitation, configuration, and current limitations.
+- `docs/cli-guide.md`: Phase 9 CLI app guide, demo flow, and Phase 10 CLI metrics output.
 - `docs/metrics.md`: Phase 10 metrics, snapshots, WAL/recovery counters, and latency histogram guide.
 
 ## Build system
@@ -73,9 +73,12 @@ The top-level `CMakeLists.txt` configures a C++20 project and defines these curr
 - `aether_test_broker`: in-memory broker CTest executable.
 - `aether_test_persistent_broker`: persistent broker CTest executable.
 - `aether_test_cli_args`: CLI argument parsing CTest executable.
+- `aether_test_counters`: metrics counters CTest executable.
+- `aether_test_latency_histogram`: latency histogram CTest executable.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark executable.
 - `aether_bench_spsc_latency`: timestamped SPSC latency benchmark executable.
 - `aether_bench_payload_sizes`: SPSC payload-size comparison benchmark executable.
+- `aether_bench_broker_end_to_end`: broker end-to-end benchmark executable.
 
 Reusable CMake modules are:
 
@@ -85,7 +88,7 @@ Reusable CMake modules are:
 
 `AETHER_BUILD_APPS` enables the Phase 9 CLI app targets and emits them under `${CMAKE_BINARY_DIR}/apps`.
 
-`AETHER_BUILD_BENCHMARKS` enables the Phase 5 Google Benchmark dependency wiring and benchmark targets. Benchmark executables are separate from CTest targets and are emitted under `${CMAKE_BINARY_DIR}/benchmarks`.
+`AETHER_BUILD_BENCHMARKS` enables Google Benchmark dependency wiring plus the Phase 5 SPSC and Phase 10 broker benchmark targets. Benchmark executables are separate from CTest targets and are emitted under `${CMAKE_BINARY_DIR}/benchmarks`.
 
 ## Public headers
 
@@ -95,6 +98,9 @@ Reusable CMake modules are:
 - `include/aether/core/expected.hpp` provides a small C++20 expected-like result wrapper.
 - `include/aether/core/config.hpp` defines queue, WAL, and broker configuration structs with validation helpers.
 - `include/aether/cli/args.hpp` declares Phase 9 CLI option structs, parsers, and help text accessors.
+- `include/aether/metrics/snapshot.hpp` declares `BrokerMetricsSnapshot`.
+- `include/aether/metrics/counters.hpp` declares relaxed-atomic `BrokerCounters`.
+- `include/aether/metrics/latency_histogram.hpp` declares diagnostic `LatencyHistogram`.
 - `include/aether/message.hpp` defines the non-owning message header/view model and validation helpers.
 - `include/aether/broker.hpp` declares the Phase 8 in-memory broker API over the SPSC queue.
 - `include/aether/persistent_broker.hpp` declares the Phase 8 WAL-backed persistent broker API and typed replay helper for trivially copyable event types.
@@ -115,6 +121,7 @@ Reusable CMake modules are:
 - `src/core/status.cpp` compiles stable status names and default messages into the library target.
 - `src/broker.cpp` implements broker durability mode naming and broker/PersistentBroker configuration validation helpers.
 - `src/cli/args.cpp` implements dependency-free Phase 9 CLI argument parsing.
+- `src/metrics/latency_histogram.cpp` implements latency histogram statistics and percentile calculations.
 - `src/io/mmap_file.cpp` compiles the POSIX mmap implementation into the library target.
 - `src/wal/checksum.cpp` implements CRC32 and WAL record checksum helpers.
 - `src/wal/wal_writer.cpp` implements the append-only mmap-backed WAL writer.
@@ -155,13 +162,17 @@ CTest currently covers:
 - WAL reader sequential replay, reset, visitor replay, zero-filled tail EOF, partial-record clean stop, and checksum corruption detection;
 - in-memory broker publish/consume, full/empty behavior, FIFO order, `try_emplace`, move-only payload support, and runtime queue capacity validation;
 - persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, flush, and typed replay;
-- CLI argument parsing defaults, help flags, `--key value`, `--key=value`, valid options, and invalid argument handling in `tests/test_cli_args.cpp`.
+- CLI argument parsing defaults, help flags, `--key value`, `--key=value`, valid options, and invalid argument handling in `tests/test_cli_args.cpp`;
+- metrics counters default/snapshot/reset/increment behavior, including WAL and recovery counter increments;
+- latency histogram empty, single-sample, and multiple-sample stats, percentile clamping, clear, and reserve behavior;
+- broker and persistent broker metrics integration as part of broker-oriented tests.
 
 ## Benchmarks
 
 - `benchmarks/bench_spsc_throughput.cpp` measures ordered SPSC throughput for capacities 64, 256, 1024, and 65536.
 - `benchmarks/bench_spsc_latency.cpp` measures approximate timestamped SPSC transfer latency for capacities 1024 and 65536.
 - `benchmarks/bench_payload_sizes.cpp` compares payload objects sized 8B, 32B, 64B, 256B, and 1024B for capacities 1024 and 65536.
+- `benchmarks/bench_broker_end_to_end.cpp` measures local broker publish-to-consume paths with WAL disabled and enabled.
 - `scripts/run_benchmarks.sh` configures a Release build, runs CTest, runs all benchmarks, and stores text/JSON outputs plus environment metadata under `benchmark-results/YYYYMMDD-HHMMSS/`.
 - The performance-results document is a template until measured outputs are intentionally copied from raw result files.
 
@@ -190,7 +201,7 @@ The following future phases are not implemented yet:
 
 ## Next phase
 
-Phase 10 is complete: metrics and diagnostics. The project still has no CI, packaging, networking, or production hardening.
+Phase 11 is next: CI, sanitizers, static analysis, and packaging. The project still has no CI, packaging, networking, or production hardening.
 
 ## Phase boundaries
 

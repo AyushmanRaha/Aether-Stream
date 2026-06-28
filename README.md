@@ -107,6 +107,8 @@ CTest registers standalone test executables for:
 - stress coverage that checks multiple queue capacities and preserves order;
 - in-memory broker publish/consume, full/empty handling, order, emplacement, move-only support, and runtime config validation;
 - persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, and typed replay;
+- metrics counters, snapshots, reset behavior, WAL/recovery counter increments, and `tests/test_counters.cpp` registered as `aether.metrics.counters`;
+- latency histogram empty/single/multiple-sample statistics, nearest-rank percentiles, clamping, clear, reserve behavior, and `tests/test_latency_histogram.cpp` registered as `aether.metrics.latency_histogram`;
 - mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage;
 - WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection;
 - CLI argument parsing, defaults, help flags, valid values, and invalid argument handling through `tests/test_cli_args.cpp` (`aether.cli.args`).
@@ -126,7 +128,7 @@ CTest registers standalone test executables for:
 - `scripts/run_tests.sh` configures, builds, and runs the local test suite.
 - `scripts/format_all.sh` formats or checks C/C++ files in the repository source directories.
 - `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
-- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and stores raw benchmark output under `benchmark-results/`.
+- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and stores raw benchmark output under `benchmark-results/`; it runs all benchmark executables, including `bench_broker_end_to_end`.
 - `tools/stress_spsc.cpp` provides a manual SPSC stress executable when tools are enabled.
 
 ## What does not exist yet
@@ -315,6 +317,7 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Memory ordering](docs/memory-ordering.md)
 - [Broker API](docs/broker-api.md)
 - [CLI guide](docs/cli-guide.md)
+- [Metrics and diagnostics](docs/metrics.md)
 - [Benchmark methodology](docs/benchmark-methodology.md)
 - [Performance results](docs/performance-results.md)
 - [Memory-mapped file notes](docs/mmap-notes.md)

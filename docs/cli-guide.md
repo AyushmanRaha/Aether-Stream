@@ -1,8 +1,8 @@
 # Aether-Stream CLI Guide
 
-## Phase 9 status
+## CLI status
 
-Phase 9 adds dependency-free CLI apps that make the existing in-process broker and WAL components runnable from a terminal. These tools are demos and debugging aids, not production services.
+Phase 9 added dependency-free CLI apps that make the existing in-process broker and WAL components runnable from a terminal. Phase 10 added concise metrics summaries to CLI output. These tools are demos and debugging aids, not production services.
 
 ## Build
 
@@ -38,7 +38,7 @@ Example:
 ./build/release/apps/aether_bench --messages 100000 --payload-size 64 --capacity 1024
 ```
 
-Expected output shape: messages, payload size, capacity, elapsed seconds, messages/sec, producer full retries, consumer empty retries, and a result-file path.
+Expected output shape: messages, payload size, capacity, elapsed seconds, messages/sec, producer full retries, consumer empty retries, `metrics.published`, `metrics.consumed`, `metrics.publish_failed_full`, `metrics.consume_failed_empty`, and a result-file path.
 
 Limitations: this is a CLI demo benchmark, not a replacement for the Google Benchmark suite or official performance results. Do not publish numbers without raw measured outputs and context.
 
@@ -54,7 +54,7 @@ Example:
 ./build/release/apps/aether_pub --wal data/sample.wal --messages 1000
 ```
 
-Expected output shape: WAL path, messages requested, records written, next sequence, current WAL offset, and remaining WAL space.
+Expected output shape: WAL path, messages requested, records written, `metrics.published`, `metrics.wal_records_written`, `metrics.wal_bytes_written`, `metrics.wal_flushes`, `metrics.publish_failed_full`, `metrics.wal_failures`, next sequence, current WAL offset, and remaining WAL space.
 
 Limitations: generated demo payloads only; no networking, no inter-process broker service, and no production persistence claims.
 
@@ -70,7 +70,10 @@ Example:
 ./build/release/apps/aether_sub --wal data/sample.wal --limit 10
 ```
 
-Expected output shape: an explicit no-networking notice, up to `--limit` events, and a replay/consume summary.
+Expected output shape: an explicit no-networking notice and either:
+
+- local mode: events up to `--limit`, a produced/consumed/suppressed summary, `metrics.published`, `metrics.consumed`, `metrics.publish_failed_full`, and `metrics.consume_failed_empty`; or
+- WAL replay mode: events up to `--limit`, a replay summary, `metrics.recovered_records`, and `metrics.recovery_failures`.
 
 Limitations: no live inter-process broker connection and no remote subscriber mode.
 
@@ -86,7 +89,7 @@ Example:
 ./build/release/apps/aether_replay --wal data/sample.wal --limit 10
 ```
 
-Expected output shape: one line per record with offset, sequence, timestamp, payload size, flags, checksum, and preview, followed by records replayed and final offset.
+Expected output shape: one line per record with offset, sequence, timestamp, payload size, flags, checksum, and preview, followed by records replayed, final offset, `metrics.recovered_records`, and `metrics.recovery_failures`.
 
 Limitations: payload previews are raw bytes; typed interpretation belongs to `aether_sub --wal` for demo `OrderEvent` files.
 
@@ -102,7 +105,7 @@ Example:
 ./build/release/apps/aether_inspect_wal --wal data/sample.wal --verbose --limit 5
 ```
 
-Expected output shape: WAL format constants, optional per-record lines, record count, total payload bytes, first/last sequence, final reader offset, and clean/corrupt scan status.
+Expected output shape: WAL format constants, optional per-record lines, record count, total payload bytes, first sequence, last sequence, final reader offset, clean/corrupt scan status, `metrics.recovered_records`, and `metrics.recovery_failures`.
 
 Limitations: scanner only reports the existing Phase 7 WAL format; it does not repair files.
 
@@ -113,4 +116,5 @@ Limitations: scanner only reports the existing Phase 7 WAL format; it does not r
 - `aether_sub --wal` replays demo `OrderEvent` records written by `aether_pub`.
 - `aether_replay` is generic raw WAL replay.
 - `aether_bench` is a convenient CLI benchmark/demo, not a replacement for the Google Benchmark suite or official performance results.
-- No fake performance numbers are committed.
+- No official benchmark results or fake performance numbers are committed.
+- No production persistence claims.
