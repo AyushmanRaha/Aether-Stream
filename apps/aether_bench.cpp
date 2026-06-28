@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <thread>
 
@@ -26,7 +27,7 @@ void print_error(aether::Status status) {
 }
 
 template <std::size_t PayloadSize, std::size_t Capacity> Result run(std::uint64_t messages) {
-    aether::Broker<Payload<PayloadSize>, Capacity> broker{};
+    auto broker = std::make_unique<aether::Broker<Payload<PayloadSize>, Capacity>>();
     std::atomic<std::uint64_t> full_retries{};
     std::atomic<std::uint64_t> empty_retries{};
     aether::utils::Stopwatch timer{};
@@ -34,7 +35,7 @@ template <std::size_t PayloadSize, std::size_t Capacity> Result run(std::uint64_
         for (std::uint64_t i = 0; i < messages;) {
             Payload<PayloadSize> payload{};
             payload.bytes[0] = static_cast<std::byte>(i & 0xffU);
-            const auto status = broker.try_publish(payload);
+            const auto status = broker->try_publish(payload);
             if (status) {
                 ++i;
             } else if (status.code() == aether::StatusCode::full) {
@@ -46,7 +47,7 @@ template <std::size_t PayloadSize, std::size_t Capacity> Result run(std::uint64_
     std::thread consumer([&] {
         Payload<PayloadSize> payload{};
         for (std::uint64_t i = 0; i < messages;) {
-            const auto status = broker.try_consume(payload);
+            const auto status = broker->try_consume(payload);
             if (status) {
                 ++i;
             } else if (status.code() == aether::StatusCode::empty) {

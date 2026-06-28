@@ -28,3 +28,12 @@ aether_add_test(aether_test_broker test_broker.cpp aether.broker)
 aether_add_test(aether_test_persistent_broker test_persistent_broker.cpp aether.persistent_broker)
 
 aether_add_test(aether_test_cli_args test_cli_args.cpp aether.cli.args)
+
+
+if(TARGET aether_app_bench)
+  add_test(
+    NAME aether.cli.bench_smoke
+    COMMAND aether_app_bench --messages 1000 --payload-size 64 --capacity 1024
+            --output-dir "${CMAKE_BINARY_DIR}/cli-smoke-results"
+  )
+endif()
