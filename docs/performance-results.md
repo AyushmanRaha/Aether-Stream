@@ -46,6 +46,25 @@ TODO: `benchmark-results/<timestamp>/`
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
 
+
+## Batch publish results table
+
+| Benchmark | Capacity | Batch size | Payload bytes | Items/s | Raw file |
+| --- | ---: | ---: | ---: | ---: | --- |
+| TODO | TODO | TODO | TODO | TODO | TODO |
+
+## Zero-copy SPSC results table
+
+| Benchmark | Capacity | Payload bytes | Items/s | Raw file |
+| --- | ---: | ---: | ---: | --- |
+| TODO | TODO | TODO | TODO | TODO |
+
+## Spin-wait microbenchmark results table
+
+| Benchmark | Operation | Time | Raw file |
+| --- | --- | ---: | --- |
+| TODO | TODO | TODO | TODO |
+
 ## Interpretation notes
 
 TODO: Add interpretation only after measured raw outputs exist. Keep notes specific to the hardware, OS, build type, and benchmark command used for the run.
@@ -56,6 +75,9 @@ TODO: Add interpretation only after measured raw outputs exist. Keep notes speci
 - SPSC tables describe queue benchmarks.
 - The broker end-to-end table is for the Phase 10 local broker benchmark once measured.
 - Do not treat broker end-to-end results as networking, IPC, production persistence, or HFT claims.
+- Phase 12 benchmark tables are placeholders until raw Release benchmark outputs exist.
+- Synthetic Phase 12 benchmark results must not be presented as production or HFT latency claims.
+- Spin-wait results are not end-to-end queue or broker latency.
 - Debug builds must not be reported.
 - Laptop, macOS, thermally constrained, or busy-system results should be labeled as development measurements.
 - Do not add production-ready or HFT-ready claims.

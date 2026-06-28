@@ -4,11 +4,11 @@
 [![Sanitizers](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml)
 [![Benchmark smoke](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml)
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, Phase 9 terminal CLI demo toolkit, Phase 10 metrics/diagnostics, and Phase 11 CI/quality/package verification.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, Phase 9 terminal CLI demo toolkit, Phase 10 metrics/diagnostics, Phase 11 CI/quality/package verification, and Phase 12 advanced low-latency APIs: a batch-oriented in-memory broker API, an experimental zero-copy SPSC queue, spin-wait utilities, a Linux-first CPU affinity helper with macOS no-op fallback, low-latency benchmark executables, and low-latency/HFT design notes.
 
 ## Current status
 
-The repository is complete through Phase 11 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, Phase 9 CLI demo apps, Phase 10 metrics/diagnostics, and Phase 11 CI/quality/package verification.
+The repository is complete through Phase 12 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, Phase 9 CLI demo apps, Phase 10 metrics/diagnostics, Phase 11 CI/quality/package verification, and Phase 12 advanced low-latency APIs: a batch-oriented in-memory broker API, an experimental zero-copy SPSC queue, spin-wait utilities, a Linux-first CPU affinity helper with macOS no-op fallback, low-latency benchmark executables, and low-latency/HFT design notes.
 
 It is not production-ready. CI, sanitizer, static-analysis, benchmark-smoke, and CMake package-install verification are now configured, but production-ready performance claims are not available. No official measured benchmark results have been committed yet.
 
@@ -53,6 +53,15 @@ It is not production-ready. CI, sanitizer, static-analysis, benchmark-smoke, and
 - Typed replay reconstructs trivially copyable event values from WAL records for same-program/same-platform replay.
 - Broker API documentation is in `docs/broker-api.md`.
 
+
+### Advanced low-latency APIs
+
+- Batch-oriented in-memory broker API: `BatchBroker<T, Capacity>` in `include/aether/batch_broker.hpp`.
+- Experimental zero-copy SPSC queue: `ZeroCopySpsc<T, Capacity>` in `include/aether/zero_copy_spsc.hpp`, with reservation, construction, commit, and cancellation semantics.
+- Spin-wait helpers: `aether::utils::SpinWait` and `aether::utils::cpu_relax()` in `include/aether/utils/spin_wait.hpp`.
+- CPU affinity helpers: `aether::utils::CpuAffinityInfo`, `cpu_affinity_info()`, `cpu_affinity_supported()`, `pin_current_thread_to_cpu()`, and `clear_current_thread_affinity()` in `include/aether/utils/cpu_affinity.hpp`.
+- CPU affinity support is Linux-first. macOS and unsupported platforms use safe no-op fallback behavior for affinity operations.
+
 ### Memory-mapped files
 
 - Public RAII mmap wrapper in `include/aether/io/mmap_file.hpp`, implemented in `src/io/mmap_file.cpp`.
@@ -77,6 +86,8 @@ It is not production-ready. CI, sanitizer, static-analysis, benchmark-smoke, and
 - Platform/compiler/architecture detection and force-inline macro in `include/aether/detail/platform.hpp`.
 - Monotonic nanosecond clock and stopwatch helper in `include/aether/utils/clock.hpp`.
 - Thread yield, CPU relax, spin-wait, and current-thread naming helpers in `include/aether/utils/thread_utils.hpp`.
+- Phase 12 spin-wait helpers in `include/aether/utils/spin_wait.hpp`.
+- Phase 12 CPU affinity helpers in `include/aether/utils/cpu_affinity.hpp`.
 
 ### Examples
 
@@ -116,6 +127,8 @@ CTest registers standalone test executables for:
 - mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage;
 - WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection;
 - CLI argument parsing, defaults, help flags, valid values, and invalid argument handling through `tests/test_cli_args.cpp` (`aether.cli.args`).
+- batch broker batch ordering, partial batch behavior, empty/full edge cases, and invalid config behavior through `tests/test_batch_broker.cpp` (`aether.batch_broker`).
+- zero-copy SPSC reservation, commit, cancel, destructor cancellation, active reservation guard, FIFO, full behavior, wraparound, and move-only payload support through `tests/test_zero_copy_spsc.cpp` (`aether.zero_copy_spsc`).
 
 ### Benchmarks
 
@@ -124,8 +137,14 @@ CTest registers standalone test executables for:
 - `bench_spsc_latency` records approximate timestamped per-message transfer latency distributions.
 - `bench_payload_sizes` compares throughput across 8B, 32B, 64B, 256B, and 1024B payload objects.
 - `bench_broker_end_to_end` measures a local publish-to-consume path with WAL disabled and enabled, without making official performance claims.
+- `bench_batch_publish` compares single-message broker publish/consume patterns with batch broker publish/consume patterns.
+- `bench_zero_copy_spsc` compares normal SPSC insertion with zero-copy reserve/construct/commit insertion.
+- `bench_spin_wait` compares `cpu_relax`, `std::this_thread::yield`, and `SpinWait`/backoff overhead.
+- Phase 12 benchmarks are comparison, smoke, and development benchmarks only; they are not official HFT claims.
 - `docs/benchmark-methodology.md` explains how results should be produced and interpreted.
 - `docs/performance-results.md` is a template for measured results and currently contains no fabricated numbers.
+- `docs/low-latency-tuning.md` documents Phase 12 batching, zero-copy, spin-wait, CPU-affinity, cache-line, and benchmark-honesty notes.
+- `docs/hft-design-notes.md` documents Phase 12 HFT-style design tradeoffs and explicit limitations.
 
 ### Quality automation
 
@@ -139,15 +158,18 @@ CTest registers standalone test executables for:
 - `scripts/run_tests.sh` configures, builds, and runs the local test suite.
 - `scripts/format_all.sh` formats or checks C/C++ files in the repository source directories.
 - `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
-- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and stores raw benchmark output under `benchmark-results/`; it runs all benchmark executables, including `bench_broker_end_to_end`.
+- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and stores raw benchmark output under `benchmark-results/`; it runs all seven benchmark executables, including the Phase 12 benchmark executables.
 - `tools/stress_spsc.cpp` provides a manual SPSC stress executable when tools are enabled.
 
 ## What does not exist yet
 
 Planned future work that is not currently implemented includes:
 
-- advanced low-latency upgrades;
-- final docs and portfolio packaging.
+- final Phase 13 documentation and portfolio packaging;
+- official measured benchmark results from controlled runs;
+- networking or a live inter-process broker service;
+- MPSC/MPMC queues;
+- production-ready or HFT-ready guarantees.
 
 
 ## Metrics and diagnostics
@@ -227,6 +249,12 @@ Run only mmap-related CTest coverage:
 ctest --test-dir build/debug --output-on-failure -R mmap
 ```
 
+Run only Phase 12 low-latency CTest coverage:
+
+```sh
+ctest --test-dir build/debug --output-on-failure -R "batch_broker|zero_copy"
+```
+
 You can also use the local test shortcut:
 
 ```sh
@@ -291,6 +319,9 @@ Build benchmark targets manually with:
 ```sh
 cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_BENCHMARKS=ON
 cmake --build build/release
+./build/release/benchmarks/bench_batch_publish --benchmark_min_time=0.1s
+./build/release/benchmarks/bench_zero_copy_spsc --benchmark_min_time=0.1s
+./build/release/benchmarks/bench_spin_wait --benchmark_min_time=0.1s
 ```
 
 Run the reproducible benchmark workflow, including a Release configure/build and CTest pre-check, with:
@@ -329,10 +360,7 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 11 is complete. Planned future work begins after CI, sanitizer checks, static analysis, benchmark smoke checks, and CMake package install/export support.
-
-- Evaluate advanced low-latency upgrades.
-- Prepare final docs and portfolio packaging.
+Phase 12 is complete. Planned future work is Phase 13 final documentation, portfolio packaging, diagrams, release notes, and final presentation polish. Do not treat the existing Phase 12 APIs or benchmarks as production-ready or HFT-ready guarantees.
 
 ## Local setup
 
@@ -359,6 +387,8 @@ The script checks for local tools and creates lightweight build directories. It 
 - [Metrics and diagnostics](docs/metrics.md)
 - [Benchmark methodology](docs/benchmark-methodology.md)
 - [Performance results](docs/performance-results.md)
+- [Low-latency tuning](docs/low-latency-tuning.md)
+- [HFT-style design notes](docs/hft-design-notes.md)
 - [Memory-mapped file notes](docs/mmap-notes.md)
 - [WAL format](docs/wal-format.md)
 
