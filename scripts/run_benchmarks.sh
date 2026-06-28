@@ -110,5 +110,8 @@ run_benchmark bench_spsc_throughput
 run_benchmark bench_spsc_latency
 run_benchmark bench_payload_sizes
 run_benchmark bench_broker_end_to_end
+run_benchmark bench_batch_publish
+run_benchmark bench_zero_copy_spsc
+run_benchmark bench_spin_wait
 
 echo "==> Benchmark raw outputs written to: ${RESULT_DIR}"

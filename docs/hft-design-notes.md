@@ -31,5 +31,5 @@ Real trading systems would still need kernel bypass or specialized networking, N
 - Correctness comes before benchmarking.
 - Acquire/release memory ordering publishes slot lifetimes without locks in SPSC ownership.
 - Cache-line padding reduces false sharing on hot counters.
-- Benchmarks must be run in Release mode and reported as raw/local unless a controlled measurement process exists.
+- Benchmarks such as `bench_batch_publish`, `bench_zero_copy_spsc`, and `bench_spin_wait` must be run in Release mode and reported as raw/local unless a controlled measurement process exists.
 - Avoid unsupported performance claims.

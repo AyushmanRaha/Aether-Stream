@@ -2,15 +2,15 @@
 
 ## Project summary
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 11: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, WAL-backed persistent broker API, Phase 9 CLI toolkit, Phase 10 metrics/diagnostics/observability, and Phase 11 CI/sanitizer/static-analysis/package verification. It is not production-ready and does not yet include advanced low-latency APIs, final portfolio packaging, networking, or official measured benchmark claims.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 12: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, WAL-backed persistent broker API, Phase 9 CLI toolkit, Phase 10 metrics/diagnostics/observability, Phase 11 CI/sanitizer/static-analysis/package verification, and Phase 12 BatchBroker, ZeroCopySpsc, SpinWait/cpu_relax utility, CPU affinity helper, benchmarks, and docs. It is not production-ready and does not yet include final portfolio packaging, networking, or official measured benchmark claims.
 
 ## Current phase
 
-Phase 11 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs, plus Phase 9 CLI argument parsing helpers, five CLI apps, CLI args tests, CLI guide, README demo flow, Phase 10 metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, metrics docs, broker end-to-end benchmark, and Phase 11 GitHub Actions CI, sanitizer workflow, benchmark smoke workflow, CMake sanitizer options, clang-tidy integration, install/export package support, contributing guide, changelog, and release checklist.
+Phase 12 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs, plus Phase 9 CLI argument parsing helpers, five CLI apps, CLI args tests, CLI guide, README demo flow, Phase 10 metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, metrics docs, broker end-to-end benchmark, Phase 11 GitHub Actions CI, sanitizer workflow, benchmark smoke workflow, CMake sanitizer options, clang-tidy integration, install/export package support, contributing guide, changelog, release checklist, and Phase 12 batch broker API, experimental zero-copy SPSC, SpinWait/cpu_relax utilities, CPU affinity helpers, Phase 12 tests, Phase 12 benchmarks, low-latency tuning docs, and HFT-style design notes.
 
 ## Next phase
 
-Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy reservation APIs, spin-wait/backoff tuning, and CPU affinity helpers. Do not add Phase 12 implementation unless the active task explicitly asks for Phase 12.
+Phase 13 is next: final documentation, portfolio packaging, diagrams, release notes, and final presentation polish. Do not implement Phase 13 unless the active task explicitly asks for it.
 
 ## Phase boundaries
 
@@ -26,7 +26,7 @@ Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy rese
 - Phase 9 completed: CLI argument parsing helpers, `aether_bench`, `aether_pub`, `aether_sub`, `aether_replay`, `aether_inspect_wal`, CLI args tests, CLI guide, and README demo flow.
 - Phase 10 completed: metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, docs, and broker end-to-end benchmark.
 - Phase 11 completed: GitHub Actions CI, sanitizer jobs, clang-tidy static analysis, benchmark smoke workflow, CMake sanitizer configuration, CMake install/export package support, contributor guide, changelog, and release checklist.
-- Phase 12 later: advanced low-latency APIs and tuning.
+- Phase 12 completed: batch broker API, experimental zero-copy SPSC reservation API, spin-wait utilities, Linux-first CPU affinity helpers, Phase 12 benchmarks, low-latency tuning docs, and HFT-style design notes.
 - Phase 13 later: final documentation, portfolio packaging, diagrams, and release notes.
 
 ## Current build targets
@@ -62,10 +62,15 @@ Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy rese
 - `aether_test_cli_args`: CLI argument parsing CTest executable when tests are enabled.
 - `aether_test_counters`: metrics counters CTest executable when tests are enabled.
 - `aether_test_latency_histogram`: latency histogram CTest executable when tests are enabled.
+- `aether_test_batch_broker`: batch broker CTest executable when tests are enabled.
+- `aether_test_zero_copy_spsc`: zero-copy SPSC CTest executable when tests are enabled.
 - `aether_bench_spsc_throughput`: SPSC throughput benchmark when benchmarks are enabled.
 - `aether_bench_spsc_latency`: SPSC latency benchmark when benchmarks are enabled.
 - `aether_bench_payload_sizes`: SPSC payload-size benchmark when benchmarks are enabled.
 - `aether_bench_broker_end_to_end`: broker end-to-end benchmark when benchmarks are enabled.
+- `aether_bench_batch_publish`: batch publish benchmark when benchmarks are enabled.
+- `aether_bench_zero_copy_spsc`: zero-copy SPSC benchmark when benchmarks are enabled.
+- `aether_bench_spin_wait`: spin-wait microbenchmark when benchmarks are enabled.
 
 ## Current implemented components
 
@@ -76,14 +81,18 @@ Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy rese
 - Queue, WAL, and broker config structs with validation helpers.
 - Non-owning message header/view model.
 - Header-only SPSC ring buffer for exactly one producer and exactly one consumer.
+- Experimental zero-copy SPSC queue (`aether::ZeroCopySpsc<T, Capacity>`).
 - Cache-line and platform detail helpers.
 - Clock and thread utility helpers.
+- `aether::utils::cpu_relax` and `aether::utils::SpinWait`.
+- CPU affinity APIs: `CpuAffinityInfo`, `cpu_affinity_info()`, `cpu_affinity_supported()`, `pin_current_thread_to_cpu()`, and `clear_current_thread_affinity()`.
 - RAII POSIX memory-mapped file wrapper (`MmapFile`).
 - WAL record format.
 - CRC32 checksum support.
 - Append-only WAL writer.
 - Sequential WAL reader.
 - In-memory broker API (`Broker<T, Capacity>`).
+- Batch-oriented in-memory broker API (`aether::BatchBroker<T, Capacity>`).
 - WAL-backed persistent broker API (`PersistentBroker<T, Capacity>`).
 - WAL-before-queue publish semantics.
 - Typed replay for trivially copyable persistent broker event types.
@@ -102,14 +111,14 @@ Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy rese
 - WAL replay example.
 - Broker examples.
 - Smoke, basic SPSC, and mmap smoke examples.
-- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, mmap file, WAL, broker, metrics counters, latency histogram, and CLI argument parsing tests.
+- Version, status, message, SPSC basic, SPSC wraparound, SPSC concurrent, SPSC move-only, SPSC stress, mmap file, WAL, broker, batch broker, zero-copy SPSC, metrics counters, latency histogram, and CLI argument parsing tests.
 - Broker API documentation.
 - CLI guide documentation.
 - Manual SPSC stress-validation tool.
 - Google Benchmark dependency wiring gated behind `AETHER_BUILD_BENCHMARKS`.
-- SPSC throughput, per-message latency, payload-size, and broker end-to-end benchmark executables.
+- SPSC throughput, per-message latency, payload-size, broker end-to-end, batch publish, zero-copy SPSC, and spin-wait benchmark executables.
 - Release-mode benchmark runner script with raw outputs under `benchmark-results/`.
-- Benchmark methodology and performance-results template docs.
+- Benchmark methodology, performance-results template docs, Phase 12 low-latency tuning docs, and HFT-style design notes.
 - GitHub Actions CI workflow at `.github/workflows/ci.yml`.
 - GitHub Actions sanitizer workflow at `.github/workflows/sanitizer.yml` for ASAN/UBSAN and TSAN.
 - GitHub Actions benchmark smoke workflow at `.github/workflows/benchmark-smoke.yml`.
@@ -125,14 +134,14 @@ Phase 12 is next: advanced low-latency upgrades such as batching, zero-copy rese
 ## Do not add unless requested by a phase
 
 - Measured performance claims that are not backed by raw benchmark outputs.
-- Phase 12 advanced low-latency APIs such as batching, zero-copy reservation, spin-wait tuning APIs, CPU affinity helpers, or MPMC queues.
+- MPMC queues unless explicitly requested.
 - Phase 13 portfolio/release assets such as final diagrams, release notes, or final benchmark tables unless explicitly requested.
 - Networking, IPC broker service behavior, or live inter-process subscriptions.
 - New external dependencies unless the active phase explicitly asks for them.
 
 ## Do not overclaim
 
-Do not add fake performance numbers, production-ready claims, HFT-ready claims, or wording that implies networking, multi-producer/multi-consumer support, live inter-process broker subscriptions, production persistence, or official benchmark results are complete. Phase 11 provides CI, sanitizers, clang-tidy, benchmark smoke checks, and CMake package install/export support, but these verification tools do not make the project production-ready. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
+Do not add fake performance numbers, production-ready claims, HFT-ready claims, or wording that implies networking, multi-producer/multi-consumer support, live inter-process broker subscriptions, production persistence, or official benchmark results are complete. Phase 11/12 provide CI, sanitizers, clang-tidy, benchmark smoke checks, CMake package install/export support, and low-latency comparison APIs/benchmarks, but these verification tools do not make the project production-ready. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
 
 ## Style rules
 
@@ -143,7 +152,7 @@ Do not add fake performance numbers, production-ready claims, HFT-ready claims, 
 
 ## Expected future layout
 
-Future phases may expand `include/aether/`, `src/`, `tests/`, `benchmarks/`, and `docs/` for advanced low-latency APIs and final portfolio documentation. `.github/workflows/` already contains Phase 11 CI, sanitizer, and benchmark smoke workflows. Do not create future-phase docs or directories early unless explicitly requested.
+Future phases may expand `include/aether/`, `src/`, `tests/`, `benchmarks/`, and `docs/` for final portfolio documentation and explicitly requested future features. `.github/workflows/` already contains Phase 11 CI, sanitizer, and benchmark smoke workflows. Do not create future-phase docs or directories early unless explicitly requested.
 
 ## Local verification
 
@@ -156,6 +165,7 @@ cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
 ctest --test-dir build/debug --output-on-failure -R broker
 ctest --test-dir build/debug --output-on-failure -R "counter|histogram|metrics"
+ctest --test-dir build/debug --output-on-failure -R "batch_broker|zero_copy"
 ./build/debug/examples/smoke
 ./build/debug/examples/basic_spsc
 ./build/debug/examples/mmap_smoke
@@ -173,9 +183,12 @@ ctest --test-dir build/debug --output-on-failure -R "counter|histogram|metrics"
 ./build/debug/apps/aether_replay --wal data/sample.wal --limit 3
 ./build/debug/apps/aether_sub --wal data/sample.wal --limit 3
 ./build/release/benchmarks/bench_broker_end_to_end --benchmark_min_time=0.1s
-./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
+./build/release/benchmarks/bench_batch_publish --benchmark_min_time=0.1s
+./build/release/benchmarks/bench_zero_copy_spsc --benchmark_min_time=0.1s
+./build/release/benchmarks/bench_spin_wait --benchmark_min_time=0.1s
+./scripts/run_benchmarks.sh --benchmark_min_time=0.5s  # runs all current benchmark executables
 
-# Phase 11 quality checks
+# Phase 11/12 quality checks
 ./scripts/format_all.sh --check
 
 cmake -S . -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_ASAN=ON -DAETHER_ENABLE_UBSAN=ON

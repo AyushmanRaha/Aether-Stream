@@ -26,4 +26,4 @@ The queues use the existing `CachePadded` utility to separate hot producer and c
 
 ## Benchmarking honesty
 
-Use Release builds for any local numbers and preserve the raw commands and output. Benchmark smoke jobs only catch regressions in benchmark executables; they are not official results. Do not claim HFT-grade latency from macOS laptop runs or from synthetic microbenchmarks.
+Use Release builds for any local numbers and preserve the raw commands and output. Benchmark smoke jobs only catch regressions in benchmark executables; they are not official results. `scripts/run_benchmarks.sh` runs the Phase 12 `bench_batch_publish`, `bench_zero_copy_spsc`, and `bench_spin_wait` executables along with the earlier benchmarks. Do not claim HFT-grade latency from macOS laptop runs or from synthetic microbenchmarks.
