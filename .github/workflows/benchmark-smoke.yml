@@ -1,0 +1,45 @@
+name: Benchmark smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark-build-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Configure
+        run: >-
+          cmake -S . -B build/bench-smoke -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DAETHER_BUILD_TESTS=ON
+          -DAETHER_BUILD_EXAMPLES=ON
+          -DAETHER_BUILD_TOOLS=ON
+          -DAETHER_BUILD_APPS=ON
+          -DAETHER_BUILD_BENCHMARKS=ON
+          -DAETHER_ENABLE_WARNINGS_AS_ERRORS=ON
+      - run: cmake --build build/bench-smoke
+      - run: ctest --test-dir build/bench-smoke --output-on-failure
+      - name: Run benchmark smoke checks
+        run: |
+          ./build/bench-smoke/benchmarks/bench_spsc_throughput --benchmark_min_time=0.01s
+          ./build/bench-smoke/benchmarks/bench_spsc_latency --benchmark_min_time=0.01s
+          ./build/bench-smoke/benchmarks/bench_payload_sizes --benchmark_min_time=0.01s
+          ./build/bench-smoke/benchmarks/bench_broker_end_to_end --benchmark_min_time=0.01s
+          ./build/bench-smoke/apps/aether_bench --messages 1000 --payload-size 64 --capacity 1024 --output-dir benchmark-smoke-results
+      - name: Upload smoke logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-smoke-results
+          path: benchmark-smoke-results
+          if-no-files-found: ignore

@@ -2,6 +2,7 @@ function(aether_add_test target source test_name)
   add_executable(${target} ${source})
   target_link_libraries(${target} PRIVATE aether::stream)
   aether_set_project_warnings(${target})
+  aether_enable_sanitizers(${target})
   set_target_properties(
     ${target}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"

@@ -1,12 +1,16 @@
 # Aether-Stream
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, Phase 9 terminal CLI demo toolkit, and Phase 10 metrics/diagnostics.
+[![CI](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/ci.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/ci.yml)
+[![Sanitizers](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml)
+[![Benchmark smoke](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml)
+
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, Phase 9 terminal CLI demo toolkit, Phase 10 metrics/diagnostics, and Phase 11 CI/quality/package verification.
 
 ## Current status
 
-The repository is complete through Phase 10 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, Phase 9 CLI demo apps, and Phase 10 metrics/diagnostics.
+The repository is complete through Phase 11 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, Phase 9 CLI demo apps, Phase 10 metrics/diagnostics, and Phase 11 CI/quality/package verification.
 
-It is not production-ready. CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
+It is not production-ready. CI, sanitizer, static-analysis, benchmark-smoke, and CMake package-install verification are now configured, but production-ready performance claims are not available. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -15,7 +19,7 @@ It is not production-ready. CI, packaging, and production-ready performance clai
 - Top-level CMake project using C++20.
 - Library target: `aether_stream`.
 - Public alias target for consumers: `aether::stream`.
-- Options for enabling tests, examples, tools, CLI apps, warnings, warnings-as-errors, and benchmark builds.
+- Options for enabling tests, examples, tools, CLI apps, warnings, warnings-as-errors, benchmark builds, sanitizers, clang-tidy, and install/export package rules.
 - Google Benchmark is wired only when `AETHER_BUILD_BENCHMARKS=ON`.
 
 ### Core API
@@ -123,6 +127,13 @@ CTest registers standalone test executables for:
 - `docs/benchmark-methodology.md` explains how results should be produced and interpreted.
 - `docs/performance-results.md` is a template for measured results and currently contains no fabricated numbers.
 
+### Quality automation
+
+- GitHub Actions workflows run format checks, Ubuntu/macOS Debug and Release builds, CTest, clang-tidy, sanitizer builds, benchmark smoke checks, and package install smoke checks.
+- Sanitizer flags are centralized in `cmake/AetherSanitizers.cmake` and are enabled only through explicit CMake options.
+- Install/export package rules are centralized in `cmake/AetherInstall.cmake` and export the consumer target as `aether::stream`.
+- A moderate `.clang-tidy` configuration is available for opt-in local and CI static analysis.
+
 ### Scripts/tooling
 
 - `scripts/run_tests.sh` configures, builds, and runs the local test suite.
@@ -135,7 +146,6 @@ CTest registers standalone test executables for:
 
 Planned future work that is not currently implemented includes:
 
-- CI, sanitizers, and packaging;
 - advanced low-latency upgrades;
 - final docs and portfolio packaging.
 
@@ -223,6 +233,33 @@ You can also use the local test shortcut:
 ./scripts/run_tests.sh
 ```
 
+## Quality checks
+
+Check formatting locally with:
+
+```sh
+./scripts/format_all.sh --check
+```
+
+Configure an ASAN/UBSAN build with:
+
+```sh
+cmake -S . -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+  -DAETHER_BUILD_TESTS=ON \
+  -DAETHER_ENABLE_ASAN=ON \
+  -DAETHER_ENABLE_UBSAN=ON
+```
+
+Configure a TSAN build separately with:
+
+```sh
+cmake -S . -B build/tsan -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+  -DAETHER_BUILD_TESTS=ON \
+  -DAETHER_ENABLE_TSAN=ON
+```
+
+For package install smoke checks, configure with `-DAETHER_ENABLE_INSTALL=ON`, run `cmake --install`, then verify a temporary consumer project can call `find_package(AetherStream CONFIG REQUIRED)` and link `aether::stream`. See [Contributing](CONTRIBUTING.md) and the [release checklist](docs/release-checklist.md) for the full command sequence.
+
 ## CLI demo apps
 
 Build with `-DAETHER_BUILD_APPS=ON`, then inspect help for each app:
@@ -292,9 +329,8 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 10 is complete. Planned future work begins with Phase 11 CI, sanitizer checks, and packaging.
+Phase 11 is complete. Planned future work begins after CI, sanitizer checks, static analysis, benchmark smoke checks, and CMake package install/export support.
 
-- Add CI, sanitizer checks, and packaging.
 - Evaluate advanced low-latency upgrades.
 - Prepare final docs and portfolio packaging.
 
@@ -311,6 +347,9 @@ The script checks for local tools and creates lightweight build directories. It 
 
 ## Repository docs
 
+- [Contributing guide](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Release checklist](docs/release-checklist.md)
 - [Project map](docs/00-project-map.md)
 - [Learning roadmap](docs/01-learning-roadmap.md)
 - [Ring buffer design](docs/ring-buffer-design.md)
