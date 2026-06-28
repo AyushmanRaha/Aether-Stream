@@ -33,6 +33,7 @@ add_library(
   src/core/status.cpp
   src/io/mmap_file.cpp
   src/metrics/latency_histogram.cpp
+  src/utils/cpu_affinity.cpp
   src/broker.cpp
   src/cli/args.cpp
   src/wal/checksum.cpp
@@ -155,4 +156,4 @@ if(AETHER_ENABLE_INSTALL)
   include(AetherInstall)
 endif()
 
-message(STATUS "Aether-Stream Phase 11 build configured.")
+message(STATUS "Aether-Stream Phase 12 build configured.")
