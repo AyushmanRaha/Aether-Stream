@@ -110,11 +110,51 @@ The replay helper opens the WAL, validates each record through the WAL reader, c
 
 For terminal demos, see `docs/cli-guide.md`. The CLI tools exercise the local broker/WAL APIs but do not change the broker's SPSC-only or no-networking semantics.
 
+## Metrics and diagnostics
+
+Phase 10 adds local metrics and diagnostics for both broker implementations without changing their SPSC semantics. Both `Broker<T, Capacity>` and `PersistentBroker<T, Capacity>` expose:
+
+- `metrics_snapshot()`;
+- `snapshot()` as a short alias for `metrics_snapshot()`;
+- `reset_metrics()`.
+
+`metrics_snapshot()` returns `aether::metrics::BrokerMetricsSnapshot`. Snapshot fields include:
+
+- `published`;
+- `consumed`;
+- `publish_failed_full`;
+- `consume_failed_empty`;
+- `publish_failed_invalid`;
+- `consume_failed_invalid`;
+- `wal_bytes_written`;
+- `wal_records_written`;
+- `wal_flushes`;
+- `wal_failures`;
+- `recovered_records`;
+- `recovery_failures`.
+
+The in-memory broker counters track publish/consume success and full/empty/invalid attempts. The persistent broker counters additionally track WAL writes, WAL bytes, flushes, WAL failures, and replay metrics. `PersistentBroker<T, Capacity>::replay_with_metrics(path, visitor, counters)` is available when callers want typed replay to update an explicit `aether::metrics::BrokerCounters` instance. The existing `replay(path, visitor)` helper is preserved for callers that do not need explicit replay metrics.
+
+Counters are observability signals, not correctness mechanisms. Broker correctness still depends on the documented SPSC usage, status-code handling, and WAL semantics.
+
+```cpp
+aether::Broker<OrderEvent, 1024> broker;
+broker.try_publish(OrderEvent{1, 101.25, 10});
+OrderEvent out{};
+broker.try_consume(out);
+
+auto metrics = broker.metrics_snapshot();
+// metrics.published == 1
+// metrics.consumed == 1
+```
+
 ## Limitations
 
 - No networking.
 - Phase 9 CLI demos exist, but there is still no networked broker service or live inter-process subscriber.
-- No metrics yet.
+- Metrics exist, but no structured logging, exporter, Prometheus integration, or network observability exists yet.
+- Metrics do not make the broker production-ready.
+- Metrics are local in-process counters and diagnostic helpers.
 - No MPSC or MPMC support.
 - No blocking broker API.
 - No schema evolution for persisted C++ structs yet.

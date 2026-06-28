@@ -2,17 +2,19 @@
 
 ## Scope
 
-Phase 5 adds a benchmark framework for measuring the existing `SpscRingBuffer<T, Capacity>` implementation. The benchmarks are intended to make local performance experiments reproducible and to keep reported numbers tied to raw output files.
+The benchmark suite contains the Phase 5 SPSC queue benchmarks and the Phase 10 broker end-to-end benchmark. The benchmarks are intended to make local performance experiments reproducible and to keep reported numbers tied to raw output files.
 
-## What is being benchmarked in Phase 5
+## Phase 5 SPSC benchmarks
 
 - SPSC producer-to-consumer message throughput.
 - Approximate per-message SPSC queue transfer latency using timestamped payloads.
 - Throughput impact of payload object sizes of 8B, 32B, 64B, 256B, and 1024B.
 
-## What is not being benchmarked yet
+## Phase 10 broker end-to-end benchmark
 
-Phase 5 benchmarks measure SPSC queue behavior only. They do not measure a broker, WAL, mmap persistence, CLI workflow, metrics subsystem, network path, end-to-end durability, or any Phase 6+ feature.
+`bench_broker_end_to_end` measures local publish-to-consume paths. It includes WAL-disabled in-memory broker variants and WAL-enabled persistent broker variants. It reports counters such as published, consumed, WAL bytes written, and WAL records written.
+
+This benchmark is still local and in-process. It does not measure networking, IPC, production durability, fsync guarantees, or full system latency. It does not create official performance claims by itself.
 
 ## Build configuration
 
@@ -34,11 +36,12 @@ To shorten exploratory runs, pass Google Benchmark flags that are appended to ev
 
 ## Benchmark executables
 
-Phase 5 builds these executable targets when `AETHER_BUILD_BENCHMARKS=ON`:
+These executable targets build when `AETHER_BUILD_BENCHMARKS=ON`:
 
 - `bench_spsc_throughput`
 - `bench_spsc_latency`
 - `bench_payload_sizes`
+- `bench_broker_end_to_end`
 
 They are emitted under `${CMAKE_BINARY_DIR}/benchmarks`.
 
@@ -83,6 +86,7 @@ Each benchmark emits both console text and JSON:
 - `bench_spsc_throughput.txt` and `.json`
 - `bench_spsc_latency.txt` and `.json`
 - `bench_payload_sizes.txt` and `.json`
+- `bench_broker_end_to_end.txt` and `.json`
 
 ## Environment metadata captured
 
@@ -102,5 +106,7 @@ The runner stores `environment.txt` with available metadata including git commit
 - macOS and laptop measurements are development numbers.
 - Apple Silicon power management, thermals, background tasks, and scheduler behavior can affect results.
 - Final HFT-style claims would require controlled Linux benchmarking with pinned cores and a quieter system.
-- Phase 5 benchmarks measure SPSC queue behavior only, not broker, WAL, CLI, mmap persistence, or end-to-end durability.
+- SPSC benchmarks measure queue behavior.
+- `bench_broker_end_to_end` measures a local broker path with WAL off/on.
+- None of these benchmarks are production, networking, IPC, or HFT claims.
 - Do not invent numbers, omit raw output paths, or present manual stress-tool output as benchmark results.
