@@ -44,8 +44,13 @@ template <std::size_t Capacity> int run_local(const aether::cli::SubOptions& opt
         ++consumed;
     }
     const auto suppressed = consumed > options.limit ? consumed - options.limit : 0U;
+    const auto metrics = broker.metrics_snapshot();
     std::cout << "summary: produced=" << options.messages << " consumed=" << consumed
-              << " suppressed=" << suppressed << '\n';
+              << " suppressed=" << suppressed << '\n'
+              << "metrics.published: " << metrics.published << '\n'
+              << "metrics.consumed: " << metrics.consumed << '\n'
+              << "metrics.publish_failed_full: " << metrics.publish_failed_full << '\n'
+              << "metrics.consume_failed_empty: " << metrics.consume_failed_empty << '\n';
     return 0;
 }
 
@@ -84,20 +89,26 @@ int main(int argc, char** argv) {
         return dispatch_local(options);
     }
     std::uint64_t seen{};
-    const auto status = aether::PersistentBroker<OrderEvent, 65536>::replay(
-        options.wal_path, [&](const OrderEvent& event, const aether::wal::WalRecordHeader&) {
+    aether::metrics::BrokerCounters counters;
+    const auto status = aether::PersistentBroker<OrderEvent, 65536>::replay_with_metrics(
+        options.wal_path,
+        [&](const OrderEvent& event, const aether::wal::WalRecordHeader&) {
             if (seen < options.limit) {
                 print_event(event);
             }
             ++seen;
             return aether::Status::ok();
-        });
+        },
+        counters);
     if (!status) {
         print_error(status);
         return 1;
     }
     const auto suppressed = seen > options.limit ? seen - options.limit : 0U;
+    const auto metrics = counters.snapshot();
     std::cout << "summary: replayed=" << seen
               << " printed=" << (seen < options.limit ? seen : options.limit)
-              << " suppressed=" << suppressed << '\n';
+              << " suppressed=" << suppressed << '\n'
+              << "metrics.recovered_records: " << metrics.recovered_records << '\n'
+              << "metrics.recovery_failures: " << metrics.recovery_failures << '\n';
 }

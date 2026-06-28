@@ -55,10 +55,17 @@ int main(int argc, char** argv) {
         print_error(status);
         return 1;
     }
+    const auto metrics = broker.metrics_snapshot();
     std::cout << "aether_pub wrote local demo OrderEvent records\n"
               << "wal path: " << options.wal_path << '\n'
               << "messages requested: " << options.messages << '\n'
               << "records written: " << broker.wal_records_written() << '\n'
+              << "metrics.published: " << metrics.published << '\n'
+              << "metrics.wal_records_written: " << metrics.wal_records_written << '\n'
+              << "metrics.wal_bytes_written: " << metrics.wal_bytes_written << '\n'
+              << "metrics.wal_flushes: " << metrics.wal_flushes << '\n'
+              << "metrics.publish_failed_full: " << metrics.publish_failed_full << '\n'
+              << "metrics.wal_failures: " << metrics.wal_failures << '\n'
               << "next sequence: " << broker.wal_next_sequence() << '\n'
               << "current WAL offset: " << broker.wal_current_offset() << '\n'
               << "remaining WAL space: " << broker.wal_remaining_space() << '\n';

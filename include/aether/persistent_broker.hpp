@@ -2,6 +2,8 @@
 
 #include <aether/broker.hpp>
 #include <aether/message.hpp>
+#include <aether/metrics/counters.hpp>
+#include <aether/metrics/snapshot.hpp>
 #include <aether/wal/record.hpp>
 #include <aether/wal/wal_reader.hpp>
 #include <aether/wal/wal_writer.hpp>
@@ -88,23 +90,44 @@ public:
         return open_status_;
     }
 
+    [[nodiscard]] metrics::BrokerMetricsSnapshot metrics_snapshot() const noexcept {
+        return counters_.snapshot();
+    }
+
+    [[nodiscard]] metrics::BrokerMetricsSnapshot snapshot() const noexcept {
+        return metrics_snapshot();
+    }
+
+    void reset_metrics() noexcept {
+        counters_.reset();
+    }
+
     [[nodiscard]] Status try_publish(const T& value, message_flags_t flags = 0) {
         if (!valid()) {
+            counters_.record_publish_failed_invalid();
             return open_status_;
         }
         if (broker_.full()) {
+            counters_.record_publish_failed_full();
             return Status{StatusCode::full, "broker queue is full"};
         }
 
+        const auto before_offset = writer_.current_offset();
         const Status wal_status = append_to_wal(value, flags);
         if (!wal_status.is_ok()) {
+            counters_.record_wal_failure();
             return wal_status;
         }
+        const auto after_offset = writer_.current_offset();
+        counters_.record_wal_write(after_offset >= before_offset ? after_offset - before_offset
+                                                                 : 0);
 
         const Status publish_status = broker_.try_publish(value);
         if (!publish_status.is_ok()) {
+            counters_.record_wal_failure();
             return Status{StatusCode::unknown, "queue publish failed after WAL append"};
         }
+        counters_.record_published();
         return Status::ok();
     }
 
@@ -112,36 +135,59 @@ public:
         requires(std::is_move_constructible_v<T>)
     {
         if (!valid()) {
+            counters_.record_publish_failed_invalid();
             return open_status_;
         }
         if (broker_.full()) {
+            counters_.record_publish_failed_full();
             return Status{StatusCode::full, "broker queue is full"};
         }
 
+        const auto before_offset = writer_.current_offset();
         const Status wal_status = append_to_wal(value, flags);
         if (!wal_status.is_ok()) {
+            counters_.record_wal_failure();
             return wal_status;
         }
+        const auto after_offset = writer_.current_offset();
+        counters_.record_wal_write(after_offset >= before_offset ? after_offset - before_offset
+                                                                 : 0);
 
         const Status publish_status = broker_.try_publish(std::move(value));
         if (!publish_status.is_ok()) {
+            counters_.record_wal_failure();
             return Status{StatusCode::unknown, "queue publish failed after WAL append"};
         }
+        counters_.record_published();
         return Status::ok();
     }
 
     [[nodiscard]] Status try_consume(T& out) {
         if (!valid()) {
+            counters_.record_consume_failed_invalid();
             return open_status_;
         }
-        return broker_.try_consume(out);
+        const Status status = broker_.try_consume(out);
+        if (status.is_ok()) {
+            counters_.record_consumed();
+        } else if (status.code() == StatusCode::empty) {
+            counters_.record_consume_failed_empty();
+        }
+        return status;
     }
 
     [[nodiscard]] Status flush() noexcept {
         if (!valid()) {
+            counters_.record_wal_failure();
             return open_status_;
         }
-        return writer_.flush();
+        const Status status = writer_.flush();
+        if (status.is_ok()) {
+            counters_.record_wal_flush();
+        } else {
+            counters_.record_wal_failure();
+        }
+        return status;
     }
 
     [[nodiscard]] bool empty() const noexcept {
@@ -174,6 +220,14 @@ public:
 
     template <typename Visitor>
     [[nodiscard]] static Status replay(const std::filesystem::path& path, Visitor&& visitor) {
+        metrics::BrokerCounters ignored;
+        return replay_with_metrics(path, std::forward<Visitor>(visitor), ignored);
+    }
+
+    template <typename Visitor>
+    [[nodiscard]] static Status replay_with_metrics(const std::filesystem::path& path,
+                                                    Visitor&& visitor,
+                                                    metrics::BrokerCounters& counters) {
         static_assert(
             std::is_invocable_r_v<Status, Visitor&, const T&, const wal::WalRecordHeader&>,
             "PersistentBroker::replay visitor must return Status and accept "
@@ -181,21 +235,37 @@ public:
 
         auto reader_result = wal::WalReader::open(path);
         if (!reader_result.has_value()) {
+            counters.record_recovery_failure();
             return reader_result.status();
         }
 
         auto reader = std::move(reader_result).value();
         auto& visitor_ref = visitor;
-        return reader.replay([&visitor_ref](const wal::WalRecordView& record) {
-            if (record.payload.size() != sizeof(T)) {
-                return Status{StatusCode::corrupted_record,
-                              "WAL payload size does not match persistent broker value type"};
-            }
+        bool failure_recorded = false;
+        const Status replay_status = reader.replay(
+            [&visitor_ref, &counters, &failure_recorded](const wal::WalRecordView& record) {
+                if (record.payload.size() != sizeof(T)) {
+                    counters.record_recovery_failure();
+                    failure_recorded = true;
+                    return Status{StatusCode::corrupted_record,
+                                  "WAL payload size does not match persistent broker value type"};
+                }
 
-            T value{};
-            std::memcpy(std::addressof(value), record.payload.data(), sizeof(T));
-            return visitor_ref(value, record.header);
-        });
+                T value{};
+                std::memcpy(std::addressof(value), record.payload.data(), sizeof(T));
+                const Status status = visitor_ref(value, record.header);
+                if (status.is_ok()) {
+                    counters.record_recovered_record();
+                } else {
+                    counters.record_recovery_failure();
+                    failure_recorded = true;
+                }
+                return status;
+            });
+        if (!replay_status.is_ok() && !failure_recorded) {
+            counters.record_recovery_failure();
+        }
+        return replay_status;
     }
 
 private:
@@ -212,6 +282,7 @@ private:
     Broker<T, Capacity> broker_{};
     wal::WalWriter writer_{};
     Status open_status_{StatusCode::invalid_argument, "persistent broker is not open"};
+    metrics::BrokerCounters counters_{};
 };
 
 } // namespace aether

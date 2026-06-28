@@ -1,12 +1,12 @@
 # Aether-Stream
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, and Phase 9 terminal CLI demo toolkit.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, Phase 9 terminal CLI demo toolkit, and Phase 10 metrics/diagnostics.
 
 ## Current status
 
-The repository is complete through Phase 9 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, and Phase 9 CLI demo apps.
+The repository is complete through Phase 10 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, Phase 9 CLI demo apps, and Phase 10 metrics/diagnostics.
 
-It is not production-ready. Metrics/diagnostics, CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
+It is not production-ready. CI, packaging, and production-ready performance claims are not available yet. No official measured benchmark results have been committed yet.
 
 ## What exists today
 
@@ -85,13 +85,13 @@ It is not production-ready. Metrics/diagnostics, CI, packaging, and production-r
 
 ### CLI toolkit
 
-- Phase 9 CLI apps build when `AETHER_BUILD_APPS=ON`.
+- Phase 9 CLI apps build when `AETHER_BUILD_APPS=ON` and now print Phase 10 metrics summaries.
 - `aether_bench` runs a simple two-thread local broker demo benchmark without Google Benchmark.
 - `aether_pub` writes generated `OrderEvent` records to a local WAL-backed persistent broker.
 - `aether_sub` runs a local in-process subscriber demo or replays typed `OrderEvent` WAL records. It is not a network subscriber.
 - `aether_replay` prints generic raw WAL record summaries and safe payload previews.
 - `aether_inspect_wal` scans WAL files and prints format/count/offset summaries.
-- Full usage is documented in `docs/cli-guide.md`.
+- Full usage is documented in `docs/cli-guide.md`; metrics are documented in `docs/metrics.md`.
 
 ### Tests
 
@@ -113,10 +113,11 @@ CTest registers standalone test executables for:
 
 ### Benchmarks
 
-- Google Benchmark-based SPSC benchmarks build when `AETHER_BUILD_BENCHMARKS=ON`. These are separate from the Phase 9 `aether_bench` CLI demo benchmark, which is a terminal demonstration rather than part of the Google Benchmark suite.
+- Google Benchmark-based SPSC and broker end-to-end benchmarks build when `AETHER_BUILD_BENCHMARKS=ON`. These are separate from the Phase 10 `aether_bench` CLI demo benchmark, which is a terminal demonstration rather than part of the Google Benchmark suite.
 - `bench_spsc_throughput` measures ordered producer/consumer throughput across queue capacities.
 - `bench_spsc_latency` records approximate timestamped per-message transfer latency distributions.
 - `bench_payload_sizes` compares throughput across 8B, 32B, 64B, 256B, and 1024B payload objects.
+- `bench_broker_end_to_end` measures a local publish-to-consume path with WAL disabled and enabled, without making official performance claims.
 - `docs/benchmark-methodology.md` explains how results should be produced and interpreted.
 - `docs/performance-results.md` is a template for measured results and currently contains no fabricated numbers.
 
@@ -132,10 +133,22 @@ CTest registers standalone test executables for:
 
 Planned future work that is not currently implemented includes:
 
-- metrics and diagnostics;
 - CI, sanitizers, and packaging;
 - advanced low-latency upgrades;
 - final docs and portfolio packaging.
+
+
+## Metrics and diagnostics
+
+Phase 10 adds lightweight observability without changing broker semantics:
+
+- always-on relaxed-atomic broker counters;
+- `metrics_snapshot()`, `snapshot()`, and `reset_metrics()` on broker APIs;
+- diagnostic `LatencyHistogram` for tests, tools, and benchmarks;
+- an end-to-end broker benchmark covering in-memory and WAL-backed paths;
+- concise metrics summaries in CLI output.
+
+See [`docs/metrics.md`](docs/metrics.md) for field semantics, WAL/recovery metrics, and histogram percentile behavior.
 
 ## Build and test
 
@@ -277,9 +290,8 @@ Check formatting without modifying files with:
 
 ## Development roadmap
 
-Phase 9 is complete. Planned future work begins with Phase 10 metrics and diagnostics, followed by:
+Phase 10 is complete. Planned future work begins with Phase 11 CI, sanitizer checks, and packaging.
 
-- Add metrics and diagnostics.
 - Add CI, sanitizer checks, and packaging.
 - Evaluate advanced low-latency upgrades.
 - Prepare final docs and portfolio packaging.

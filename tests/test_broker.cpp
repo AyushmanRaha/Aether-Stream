@@ -29,17 +29,32 @@ int main() {
     aether::Broker<int, 4> broker;
     int out = 0;
     failures += check(broker.empty(), "new broker should be empty");
+    failures +=
+        check(broker.metrics_snapshot().published == 0 && broker.metrics_snapshot().consumed == 0,
+              "new broker metrics start at zero");
     failures += check(broker.try_consume(out).code() == aether::StatusCode::empty,
                       "empty consume should return empty status");
+    failures += check(broker.metrics_snapshot().consume_failed_empty == 1,
+                      "empty consume increments metric");
     failures += check(broker.try_publish(42).is_ok(), "single publish should succeed");
+    failures +=
+        check(broker.metrics_snapshot().published == 1, "successful publish increments metric");
     failures += check(broker.try_consume(out).is_ok(), "single consume should succeed");
+    failures +=
+        check(broker.metrics_snapshot().consumed == 1, "successful consume increments metric");
     failures += check(out == 42, "consumed value should match published value");
+    broker.reset_metrics();
+    failures += check(broker.metrics_snapshot().published == 0 &&
+                          broker.metrics_snapshot().consume_failed_empty == 0,
+                      "reset metrics clears broker counters");
 
     aether::Broker<int, 2> small_broker;
     failures += check(small_broker.try_publish(1).is_ok(), "small broker first publish succeeds");
     failures += check(small_broker.try_publish(2).is_ok(), "small broker second publish succeeds");
     failures += check(small_broker.try_publish(3).code() == aether::StatusCode::full,
                       "small broker third publish returns full");
+    failures += check(small_broker.metrics_snapshot().publish_failed_full == 1,
+                      "full publish increments metric");
 
     aether::Broker<std::uint64_t, 1024> ordered_broker;
     for (std::uint64_t value = 0; value < 1000; ++value) {
@@ -72,6 +87,14 @@ int main() {
     failures += check(!invalid_broker.valid(), "mismatched runtime capacity is invalid");
     failures += check(invalid_broker.config_status().code() == aether::StatusCode::invalid_argument,
                       "mismatched runtime capacity returns invalid_argument");
+    failures += check(invalid_broker.try_publish(1).code() == aether::StatusCode::invalid_argument,
+                      "invalid broker publish returns invalid_argument");
+    failures +=
+        check(invalid_broker.try_consume(out).code() == aether::StatusCode::invalid_argument,
+              "invalid broker consume returns invalid_argument");
+    failures += check(invalid_broker.metrics_snapshot().publish_failed_invalid == 1 &&
+                          invalid_broker.metrics_snapshot().consume_failed_invalid == 1,
+                      "invalid broker metrics increment");
     failures += check(
         aether::broker_durability_mode_name(aether::BrokerDurabilityMode::in_memory) == "in_memory",
         "in-memory durability mode name matches");

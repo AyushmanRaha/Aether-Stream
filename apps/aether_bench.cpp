@@ -21,6 +21,7 @@ struct Result {
     double messages_per_second{};
     std::uint64_t full_retries{};
     std::uint64_t empty_retries{};
+    aether::BrokerMetricsSnapshot metrics{};
 };
 void print_error(aether::Status status) {
     std::cerr << "error: " << status.message() << '\n';
@@ -59,8 +60,9 @@ template <std::size_t PayloadSize, std::size_t Capacity> Result run(std::uint64_
     producer.join();
     consumer.join();
     const double seconds = timer.elapsed_seconds();
+    const auto metrics = broker->metrics_snapshot();
     return {seconds, static_cast<double>(messages) / seconds, full_retries.load(),
-            empty_retries.load()};
+            empty_retries.load(), metrics};
 }
 
 template <std::size_t PayloadSize>
@@ -134,7 +136,11 @@ int main(int argc, char** argv) {
            << "elapsed seconds: " << result.elapsed_seconds << '\n'
            << "messages/sec: " << result.messages_per_second << '\n'
            << "producer full retries: " << result.full_retries << '\n'
-           << "consumer empty retries: " << result.empty_retries << '\n';
+           << "consumer empty retries: " << result.empty_retries << '\n'
+           << "metrics.published: " << result.metrics.published << '\n'
+           << "metrics.consumed: " << result.metrics.consumed << '\n'
+           << "metrics.publish_failed_full: " << result.metrics.publish_failed_full << '\n'
+           << "metrics.consume_failed_empty: " << result.metrics.consume_failed_empty << '\n';
     };
     write(std::cout);
     if (out) {
