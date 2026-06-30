@@ -8,7 +8,7 @@ Aether-Stream is a local C++20 systems project with a reusable library, examples
 - `AGENTS.md`: guidance for coding agents working in this repository.
 - `CONTRIBUTING.md`: local development and contribution workflow.
 - `CHANGELOG.md`: unreleased change summary.
-- `RELEASE_NOTES_v0.1.0.md`: candidate release notes.
+- `RELEASE_NOTES_v0.1.0.md`: draft release notes.
 - `CMakeLists.txt`: root CMake configuration for the library and optional build groups.
 
 ## Source layout
@@ -71,10 +71,10 @@ ctest --test-dir build/debug --output-on-failure
 - `docs/broker-api.md`: broker APIs.
 - `docs/cli-guide.md`: CLI tools.
 - `docs/metrics.md`: counters, snapshots, and histograms.
-- `docs/benchmark-methodology.md`: benchmark workflow.
-- `docs/performance-results.md`: empty results template.
+- `docs/benchmark-methodology.md`: benchmark workflow and publication rules.
+- `docs/performance-results.md`: summarized benchmark results.
 - `docs/low-latency-tuning.md`: tuning notes.
 - `docs/low-latency-design-notes.md`: design tradeoffs.
 - `docs/limitations.md`: explicit non-goals.
-- `docs/interview-notes.md`: reviewer-oriented explanations.
+- `docs/benchmark-results/m1-macbook-air-2026-06-29.md`: consolidated redacted benchmark evidence.
 - `docs/release-checklist.md`: pre-release checks.

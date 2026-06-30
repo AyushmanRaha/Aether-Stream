@@ -2,7 +2,7 @@
 
 ## Release status
 
-Documentation-ready v0.1.0 candidate. Do not treat this file as evidence that a GitHub release or git tag exists unless `v0.1.0` has been created in the repository.
+Documentation-ready v0.1.0 draft. Do not treat this file as evidence that a GitHub release or git tag exists unless `v0.1.0` has been created in the repository.
 
 ## Highlights
 

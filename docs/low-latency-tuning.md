@@ -24,4 +24,6 @@ CPU affinity support is platform-dependent. Linux uses `pthread_setaffinity_np`;
 
 ## Benchmark guidance
 
-Use `./scripts/run_benchmarks.sh` for publishable local numbers. The runner creates `benchmark-results/YYYYMMDD-HHMMSS/` with raw text, JSON, and environment metadata. Benchmark smoke jobs are not official results.
+Use `./scripts/run_benchmarks.sh` for publishable local numbers. The runner creates `benchmark-results/YYYYMMDD-HHMMSS/` as local scratch output; publishable evidence may be separate sanitized raw files or one consolidated redacted Markdown transcript under `docs/benchmark-results/`. Benchmark smoke jobs are not official results.
+
+For the current published local run, see [Performance results](performance-results.md) and the detailed [M1 MacBook Air benchmark run](benchmark-results/m1-macbook-air-2026-06-29.md).

@@ -32,4 +32,4 @@ This checklist is for pre-tag verification before v0.1.0 or any later Aether-Str
 
 ## Benchmark publishing warning
 
-Do not publish official benchmark numbers unless they were generated from `scripts/run_benchmarks.sh` with environment details and raw outputs preserved.
+Do not publish benchmark numbers unless they were generated from `scripts/run_benchmarks.sh` with environment details and measured outputs preserved as sanitized raw files or consolidated redacted Markdown evidence.

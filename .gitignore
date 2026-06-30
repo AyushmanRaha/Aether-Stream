@@ -45,4 +45,4 @@ gmon.out
 compile_commands.json
 CMakeUserPresets.json
 .cache/
-benchmark-results/
+/benchmark-results/

@@ -71,7 +71,7 @@ For non-technical reviewers: this project shows how a local message can move thr
 | WAL persistence | Appends validated fixed-format records before queue publication in the persistent broker. |
 | mmap file abstraction | Wraps POSIX mapping behind RAII and reports unsupported behavior where native support is not implemented. |
 | Metrics and diagnostics | Provides counters, snapshots, latency histogram, and CLI summaries. |
-| Benchmark discipline | Uses benchmark executables plus a raw-output runner; no official numbers are published yet. |
+| Benchmark discipline | Uses benchmark executables, a raw-output runner, and published redacted local results with limitations. |
 | Build verification | CMake options cover tests, examples, tools, apps, benchmarks, sanitizers, clang-tidy, and install/export checks. |
 
 ## What is included vs intentionally not claimed
@@ -82,7 +82,7 @@ For non-technical reviewers: this project shows how a local message can move thr
 | Broker | `Broker`, `BatchBroker`, and `PersistentBroker` local APIs. | Distributed broker semantics or live inter-process subscriptions. |
 | WAL | Fixed-size mmap-backed append/read/replay with CRC32 validation. | WAL rotation, repair tooling, schema evolution, or production crash recovery. |
 | CLI | `aether_bench`, `aether_pub`, `aether_sub`, `aether_replay`, `aether_inspect_wal`. | Network clients, daemons, auth, TLS, or service discovery. |
-| Benchmarks | Benchmark executables and canonical raw-output runner. | Official numbers without committed raw outputs. |
+| Benchmarks | Benchmark executables, canonical raw-output runner, and redacted local result documentation. | Production guarantees or distributed-system comparisons. |
 | CI | Format, build, CTest, sanitizer, clang-tidy, benchmark smoke, and package smoke workflows. | Proof of production readiness. |
 | Platform support | Linux/macOS-oriented development path; WSL2 recommended for Windows users. | Fully verified native Windows mmap/test behavior. |
 
@@ -150,7 +150,7 @@ Broker metrics use relaxed-atomic counters and immutable snapshots. The latency 
 
 ### Benchmark suite
 
-Benchmark targets cover SPSC throughput, SPSC latency, payload-size comparison, broker end-to-end flow, batch publishing, zero-copy SPSC, and spin-wait primitives. Reported numbers must come from preserved raw outputs.
+Benchmark targets cover SPSC throughput, SPSC latency, payload-size comparison, broker end-to-end flow, batch publishing, zero-copy SPSC, and spin-wait primitives. Reported numbers must come from preserved benchmark evidence.
 
 ### Low-latency-oriented utilities
 
@@ -285,29 +285,15 @@ cmake --build build/release
 
 ## Benchmarks
 
-Official benchmark numbers are not published yet.
+Aether-Stream includes local benchmark executables for SPSC throughput, SPSC latency, payload-size behavior, broker end-to-end flow, batch publishing, zero-copy SPSC, and spin-wait primitives. See the [benchmark methodology](docs/benchmark-methodology.md) for the publication rules.
 
-This section is reserved for locally measured results that will be added after running the benchmark suite on an M1 MacBook Air. Results will only be reported with the raw benchmark output and environment metadata preserved.
+Published local benchmark results are available in [Performance results](docs/performance-results.md), with the detailed consolidated evidence in [M1 MacBook Air benchmark run — 2026-06-29](docs/benchmark-results/m1-macbook-air-2026-06-29.md). The detailed file preserves the benchmark values in a single redacted Markdown transcript rather than adding separate raw `.txt` or `.json` files.
+
+These are local synthetic measurements from a redacted Apple M1 MacBook Air run. They are useful for understanding implementation tradeoffs, but they are not production guarantees and do not measure networking, distributed messaging, or cross-process service behavior.
 
 ```sh
 ./scripts/run_benchmarks.sh
 ```
-
-The benchmark runner writes results to:
-
-```text
-benchmark-results/YYYYMMDD-HHMMSS/
-```
-
-Future updates should include:
-
-- environment summary;
-- benchmark command;
-- raw output path;
-- measured throughput/latency values copied from raw output;
-- notes about platform limitations.
-
-Until those raw outputs are committed, this README intentionally contains no benchmark numbers.
 
 ## Docs and deep dives
 
@@ -324,11 +310,11 @@ Until those raw outputs are committed, this README intentionally contains no ben
 | [CLI guide](docs/cli-guide.md) | Local CLI apps, demo flow, and output expectations. |
 | [Metrics](docs/metrics.md) | Counters, snapshots, latency histogram, and CLI summaries. |
 | [Benchmark methodology](docs/benchmark-methodology.md) | How to run, preserve, and publish benchmark results honestly. |
-| [Performance results](docs/performance-results.md) | Empty template for future raw-output-backed results. |
+| [Performance results](docs/performance-results.md) | Summarized local benchmark results and caveats. |
+| [M1 MacBook Air benchmark run — 2026-06-29](docs/benchmark-results/m1-macbook-air-2026-06-29.md) | Consolidated redacted benchmark evidence for the published local run. |
 | [Low-latency tuning](docs/low-latency-tuning.md) | Practical tuning notes for batching, zero-copy, spin waits, and affinity. |
 | [Low-latency design notes](docs/low-latency-design-notes.md) | Design tradeoffs and limits for latency-oriented primitives. |
 | [Limitations](docs/limitations.md) | Explicit project boundaries and unsupported behavior. |
-| [Review notes](docs/interview-notes.md) | Concise technical explanation prompts for reviewers. |
 | [Release checklist](docs/release-checklist.md) | Pre-tag verification checklist. |
 
 ## Testing and CI
@@ -353,7 +339,7 @@ Until those raw outputs are committed, this README intentionally contains no ben
 - CPU affinity behavior is platform-dependent.
 - Native Windows support is not presented as fully verified; WSL2 is the recommended Windows path.
 - Benchmark smoke checks and stress tests are not official performance results.
-- This repository intentionally contains no published benchmark numbers until raw outputs and environment metadata are committed.
+- Published benchmark results are local synthetic measurements with redacted environment details; they are not production guarantees.
 
 ## Project structure
 

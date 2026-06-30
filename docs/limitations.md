@@ -29,4 +29,4 @@ Aether-Stream is a local C++20 systems project. It is not production-ready and d
 - No official benchmark numbers are published yet.
 - Benchmark smoke checks are not performance results.
 - Stress tools are correctness aids, not benchmark results.
-- Future numbers must come from `./scripts/run_benchmarks.sh` with raw output and environment metadata preserved.
+- Published numbers must come from `./scripts/run_benchmarks.sh` with environment metadata and measured output preserved as sanitized raw files or consolidated redacted Markdown evidence.
