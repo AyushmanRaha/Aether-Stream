@@ -2,7 +2,7 @@
 
 ## CLI status
 
-Phase 9 added dependency-free CLI apps that make the existing in-process broker and WAL components runnable from a terminal. Phase 10 added concise metrics summaries to CLI output. These tools are demos and debugging aids, not production services.
+Dependency-free CLI apps make the existing in-process broker and WAL components runnable from a terminal. CLI output includes concise metrics summaries. These tools are demos and debugging aids, not production services.
 
 ## Build
 
@@ -107,7 +107,7 @@ Example:
 
 Expected output shape: WAL format constants, optional per-record lines, record count, total payload bytes, first sequence, last sequence, final reader offset, clean/corrupt scan status, `metrics.recovered_records`, and `metrics.recovery_failures`.
 
-Limitations: scanner only reports the existing Phase 7 WAL format; it does not repair files.
+Limitations: scanner only reports the existing WAL format; it does not repair files.
 
 ## Explicit limitations
 

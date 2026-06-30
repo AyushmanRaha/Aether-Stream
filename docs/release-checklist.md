@@ -1,29 +1,26 @@
-# Release checklist
+# Release Checklist
 
 This checklist is for pre-tag verification before v0.1.0 or any later Aether-Stream release.
 
 ## Required local checks
 
-- Run the format check: `./scripts/format_all.sh --check`.
+- Run `./scripts/format_all.sh --check`.
 - Configure, build, and test Debug with CTest.
 - Configure, build, and test Release with CTest.
 - Configure, build, and test ASAN/UBSAN.
 - Configure, build, and test TSAN separately from ASAN.
-- Run the benchmark smoke build and short benchmark executable checks.
-- Run the package install smoke check and verify a temporary consumer can use `find_package(AetherStream CONFIG REQUIRED)` and link `aether::stream`.
+- Run benchmark smoke checks.
+- Run package install smoke checks and verify a temporary consumer can use `find_package(AetherStream CONFIG REQUIRED)` and link `aether::stream`.
 
 ## Documentation checks
 
-- Confirm `README.md` reflects completion through Phase 13 and keeps limitations prominent.
+- Confirm `README.md` reflects the current codebase and keeps limitations prominent.
 - Confirm README Mermaid diagrams render on GitHub.
-- Confirm `docs/architecture.md` exists.
-- Confirm `docs/limitations.md` exists.
-- Confirm `docs/interview-notes.md` exists.
-- Confirm `RELEASE_NOTES_v0.1.0.md` exists.
-- Confirm `docs/cli-guide.md` matches the current CLI behavior.
+- Confirm links to `docs/repository-guide.md`, `docs/concepts-guide.md`, and all other docs resolve.
+- Confirm `docs/cli-guide.md` matches current CLI behavior.
 - Confirm `docs/benchmark-methodology.md` matches the current benchmark workflow.
-- Confirm `docs/performance-results.md` contains only measured numbers backed by raw outputs.
-- Confirm limitations remain honest and do not imply production readiness, networking, MPMC support, or unsupported latency guarantees.
+- Confirm `docs/performance-results.md` contains only raw-output-backed measurements or empty placeholders.
+- Confirm limitations do not imply production readiness, networking, MPMC support, native Windows verification, or unsupported latency guarantees.
 
 ## Release steps
 

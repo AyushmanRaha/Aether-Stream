@@ -1,6 +1,6 @@
 # Metrics, diagnostics, and observability
 
-Phase 10 adds lightweight always-on broker counters, immutable metrics snapshots, a diagnostic latency histogram, CLI metrics summaries, and an end-to-end broker benchmark. These features make broker behavior visible without changing the SPSC queue algorithm, WAL record format, or Phase 8/9 broker semantics.
+Aether-Stream includes lightweight always-on broker counters, immutable metrics snapshots, a diagnostic latency histogram, CLI metrics summaries, and an end-to-end broker benchmark. These features make broker behavior visible without changing the SPSC queue algorithm or WAL record format.
 
 ## Snapshot API
 
@@ -114,4 +114,4 @@ auto metrics = broker.snapshot();
 
 ## CLI and benchmark output
 
-Phase 10 CLI apps print concise metrics summaries. The `bench_broker_end_to_end` Google Benchmark target exercises publish-to-consume paths with WAL disabled and enabled. These diagnostics do not create official performance claims; committed benchmark result documents remain templates unless raw controlled measurements are intentionally added later.
+CLI apps print concise metrics summaries. The `bench_broker_end_to_end` benchmark target exercises publish-to-consume paths with WAL disabled and enabled. These diagnostics do not create official performance claims; committed benchmark result documents remain templates unless raw controlled measurements are intentionally added later.

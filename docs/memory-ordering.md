@@ -55,7 +55,7 @@ With multiple producers, producers would race to reserve and publish `head_`. Wi
 
 ## Validation status
 
-Phase 11 added CI, sanitizer workflows, clang-tidy integration, benchmark smoke checks, and package install verification. Concurrent and stress tests validate ordered transfer under the SPSC contract. These checks do not make the queue MPSC/MPMC and do not create production or HFT guarantees.
+CI, sanitizer workflows, clang-tidy integration, benchmark smoke checks, and package install verification improve confidence. Concurrent and stress tests validate ordered transfer under the SPSC contract. These checks do not make the queue MPSC/MPMC and do not create production guarantees.
 
 ## Plain-English interview summary
 

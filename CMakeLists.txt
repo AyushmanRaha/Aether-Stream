@@ -156,4 +156,4 @@ if(AETHER_ENABLE_INSTALL)
   include(AetherInstall)
 endif()
 
-message(STATUS "Aether-Stream Phase 12 build configured.")
+message(STATUS "Aether-Stream build configured.")
