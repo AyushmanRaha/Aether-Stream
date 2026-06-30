@@ -1,3 +1,4 @@
+// CLI: runs a local two-thread broker benchmark demo (not official performance evidence).
 #include <aether/broker.hpp>
 #include <aether/cli/args.hpp>
 #include <aether/utils/clock.hpp>

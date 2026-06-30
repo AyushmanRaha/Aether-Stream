@@ -1,3 +1,4 @@
+// Demonstrates basic Broker publish/consume behavior over the SPSC queue.
 #include <aether/broker.hpp>
 #include <cstdint>
 #include <iostream>

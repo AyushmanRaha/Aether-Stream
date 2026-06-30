@@ -1,6 +1,6 @@
 # Limitations
 
-Aether-Stream is a local C++20 systems project. It is not production-ready and does not claim networking, distributed broker behavior, or official low-latency results without raw benchmark evidence.
+Aether-Stream is a local C++20 systems project. It is not production-ready and does not claim networking, distributed broker behavior, or official low-latency results without raw benchmark evidence. In plain terms, this page is the project's honesty list: it states clearly what Aether-Stream does not do yet, so expectations about its scope stay accurate.
 
 ## Messaging model
 
@@ -26,7 +26,7 @@ Aether-Stream is a local C++20 systems project. It is not production-ready and d
 
 ## Benchmark model
 
-- No official benchmark numbers are published yet.
+- Official benchmark numbers are published only when backed by preserved benchmark evidence.
 - Benchmark smoke checks are not performance results.
 - Stress tools are correctness aids, not benchmark results.
 - Published numbers must come from `./scripts/run_benchmarks.sh` with environment metadata and measured output preserved as sanitized raw files or consolidated redacted Markdown evidence.

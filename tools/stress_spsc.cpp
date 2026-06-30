@@ -1,3 +1,4 @@
+// Manual stress/validation tool for the SPSC ring buffer under sustained load.
 #include <aether/spsc_ring_buffer.hpp>
 #include <aether/utils/clock.hpp>
 #include <aether/utils/thread_utils.hpp>

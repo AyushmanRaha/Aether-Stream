@@ -1,3 +1,4 @@
+// CLI: summarizes and validates the contents of a local WAL file.
 #include <aether/cli/args.hpp>
 #include <aether/metrics/counters.hpp>
 #include <aether/wal/record.hpp>

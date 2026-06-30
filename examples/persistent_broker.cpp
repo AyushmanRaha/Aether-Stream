@@ -1,3 +1,4 @@
+// Demonstrates PersistentBroker WAL-before-queue publish and replay behavior.
 #include <aether/persistent_broker.hpp>
 #include <cstdint>
 #include <filesystem>

@@ -1,3 +1,4 @@
+// Minimal smoke test: prints the built library version to confirm linking works.
 #include <aether/version.hpp>
 #include <iostream>
 

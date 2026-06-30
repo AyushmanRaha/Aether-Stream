@@ -1,3 +1,4 @@
+// Writes sample WAL records and replays them to demonstrate WAL read/write behavior.
 #include <aether/wal/wal_reader.hpp>
 #include <aether/wal/wal_writer.hpp>
 #include <cstddef>

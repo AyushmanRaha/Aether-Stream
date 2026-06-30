@@ -29,6 +29,8 @@ Aether-Stream is intentionally local-only:
 
 The CLI tools demonstrate local queue, broker, WAL, replay, and metrics behavior. They are useful for learning and validation, but they are not network clients or production services.
 
+Where this guide says WAL, it means the write-ahead log: a local append-only file that records each message before it is delivered, used here for the publish, inspect, and replay workflows below.
+
 ## Command map
 
 | Area | Command/Target | Purpose |

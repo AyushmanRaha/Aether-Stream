@@ -2,6 +2,8 @@
 
 Aether-Stream exposes typed local broker APIs over the existing SPSC queue, plus a WAL-backed persistent broker that appends records before publishing them to the in-memory queue.
 
+In plain terms, a broker is the publish/consume front door to the queue: producers call a publish method, consumers call a consume method, and the persistent variant additionally writes a durable copy to disk first.
+
 ## Status
 
 Broker operations return `aether::Status` instead of throwing exceptions for normal full, empty, configuration, WAL, or corruption outcomes. Check `status.is_ok()` or the explicit `bool` conversion before assuming an operation succeeded.

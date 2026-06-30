@@ -4,7 +4,7 @@
 
 ### Local C++20 message-broker toolkit with bounded low-latency primitives
 
-Aether-Stream is a local C++20 message-broker toolkit for studying and demonstrating low-latency-oriented messaging primitives in a carefully bounded environment. It combines a single-producer/single-consumer lock-free queue, broker-style APIs, mmap-backed write-ahead logging, replay tools, metrics, CLI demos, benchmarks, and CI verification.
+Aether-Stream is a local C++20 message-broker toolkit for studying and demonstrating low-latency-oriented messaging primitives in a carefully bounded environment. It combines a single-producer/single-consumer lock-free queue, broker-style APIs, mmap-backed write-ahead logging (WAL), replay tools, metrics, CLI demos, benchmarks, and CI verification.
 
 It is intentionally local-first: no networking, no distributed cluster, no live cross-process broker service, and no production-readiness claim. The value of the project is in the correctness-focused implementation of queueing, persistence, diagnostics, benchmark discipline, and build automation.
 
@@ -67,7 +67,7 @@ For non-technical reviewers: this project shows how a local message can move thr
 | Lock-free SPSC queue | Uses acquire/release publication, cache-line padding, raw slot lifetime management, and stress tests. |
 | Broker APIs | Provides in-memory, batch, and WAL-backed wrappers over the SPSC queue. |
 | WAL persistence | Appends validated fixed-format records before queue publication in the persistent broker. |
-| mmap file abstraction | Wraps POSIX mapping behind RAII and reports unsupported behavior where native support is not implemented. |
+| mmap file abstraction | Wraps POSIX memory-mapped file I/O (mmap) behind RAII (automatic, exception-safe resource cleanup) and reports unsupported behavior where native support is not implemented. |
 | Metrics and diagnostics | Provides counters, snapshots, latency histogram, and CLI summaries. |
 | Benchmark discipline | Uses benchmark executables, a raw-output runner, and published redacted local results with limitations. |
 | Build verification | CMake options cover tests, examples, tools, apps, benchmarks, sanitizers, clang-tidy, and install/export checks. |
@@ -78,13 +78,15 @@ For non-technical reviewers: this project shows how a local message can move thr
 |---|---|---|
 | Queue | `SpscRingBuffer<T, Capacity>` and experimental `ZeroCopySpsc<T, Capacity>`. | MPSC/MPMC queues or blocking wait primitives. |
 | Broker | `Broker`, `BatchBroker`, and `PersistentBroker` local APIs. | Distributed broker semantics or live inter-process subscriptions. |
-| WAL | Fixed-size mmap-backed append/read/replay with CRC32 validation. | WAL rotation, repair tooling, schema evolution, or production crash recovery. |
+| WAL | Fixed-size mmap-backed append/read/replay with CRC32 validation (a checksum used to detect corrupted records). | WAL rotation, repair tooling, schema evolution, or production crash recovery. |
 | CLI | `aether_bench`, `aether_pub`, `aether_sub`, `aether_replay`, `aether_inspect_wal`. | Network clients, daemons, auth, TLS, or service discovery. |
 | Benchmarks | Benchmark executables, canonical raw-output runner, and redacted local result documentation. | Production guarantees or distributed-system comparisons. |
 | CI | Format, build, CTest, sanitizer, clang-tidy, benchmark smoke, and package smoke workflows. | Proof of production readiness. |
 | Platform support | Linux/macOS-oriented development path; WSL2 recommended for Windows users. | Fully verified native Windows mmap/test behavior. |
 
 ## Architecture at a glance
+
+The diagram below traces a call from a CLI app or example down through the broker layer to the queue, WAL, and metrics components, all of which share the same core types.
 
 ```mermaid
 flowchart LR
@@ -104,6 +106,8 @@ flowchart LR
     CI["GitHub Actions<br/>CI / sanitizers / benchmark smoke"] --> Build["CMake build<br/>tests / examples / apps / package install"]
 ```
 
+The sequence diagram below shows a message being appended to the WAL before it is published to the queue, and a separate reader later replaying that WAL file.
+
 ```mermaid
 sequenceDiagram
     participant P as Producer
@@ -119,7 +123,7 @@ sequenceDiagram
     W-->>PB: Status::ok or WAL error
     PB->>Q: publish only after WAL append succeeds
     Q-->>C: consume event in process
-    R->>W: open WAL file later
+    R->>R: open WAL file later
     R->>R: validate magic, version, size, checksum
     R-->>P: replay typed records for same-program payloads
 ```
@@ -291,7 +295,25 @@ These are local synthetic measurements from a redacted Apple M1 MacBook Air run.
 - Benchmark smoke checks and stress tests are not official performance results.
 - Published benchmark results are local synthetic measurements with redacted environment details; they are not production guarantees.
 
+<details>
+<summary><strong>Glossary for newcomers (click to expand)</strong></summary>
+
+- **SPSC** (single-producer/single-consumer): exactly one thread may produce and one may consume. See docs/ring-buffer-design.md.
+- **Lock-free**: progress is made using atomic operations instead of OS-level locks.
+- **WAL** (write-ahead log): a local append-only file that records each message before it becomes visible to the consumer. See docs/wal-format.md.
+- **mmap**: an OS call that maps a file into memory so it can be read and written like an array instead of through read()/write() calls. See docs/mmap-notes.md.
+- **RAII**: a C++ pattern where a resource is acquired in a constructor and automatically released in a destructor.
+- **CRC32**: a checksum algorithm used to detect corrupted WAL records.
+- **Broker**: the local publish/consume API layered on top of the SPSC queue. See docs/broker-api.md.
+- **Replay**: reading a WAL file back from disk to reconstruct the events it contains.
+- **Sanitizer** (ASAN/UBSAN/TSAN): a compiler-instrumented build that detects memory errors, undefined behavior, or data races at runtime.
+- **CTest**: the test runner bundled with CMake, used to run this project's automated test suite.
+
+</details>
+
 ## Project structure
+
+For a complete expanded tree, see [docs/project-structure.md](docs/project-structure.md).
 
 ```text
 .
