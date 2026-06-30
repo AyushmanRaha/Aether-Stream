@@ -2,82 +2,86 @@
 
 ## Current status
 
-TODO: No official measured results have been committed yet. Run ./scripts/run_benchmarks.sh from a Release-capable local environment and paste only measured numbers with the raw output path.
+No official benchmark run has been published yet. This repository currently contains no committed `benchmark-results/YYYYMMDD-HHMMSS/` raw outputs, so this document intentionally contains no fabricated throughput, latency, p99, p999, or hardware-specific numbers.
 
-## Latest run
+## How to publish a result
 
-TODO: Add run timestamp and git commit after an official measured run.
+1. Run `./scripts/run_benchmarks.sh` from the repository root.
+2. Copy environment metadata from `benchmark-results/YYYYMMDD-HHMMSS/environment.txt`.
+3. Copy measured numbers from the raw `.txt` or `.json` benchmark outputs.
+4. Link each table row to the exact raw output filename/path.
+
+## Canonical commands
+
+```sh
+./scripts/run_benchmarks.sh
+```
+
+Short exploratory command:
+
+```sh
+./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
+```
+
+## Latest official run
+
+Not yet published.
 
 ## Environment
 
-TODO: Summarize the relevant entries from `benchmark-results/<timestamp>/environment.txt`.
-
-## Commands
-
-```sh
-TODO: ./scripts/run_benchmarks.sh
-```
+Not yet published. Future entries must summarize `environment.txt` from the raw output directory.
 
 ## Raw output location
 
-TODO: `benchmark-results/<timestamp>/`
+Not yet published. Future entries must link to `benchmark-results/YYYYMMDD-HHMMSS/`.
 
 ## SPSC throughput results table
 
 | Benchmark | Capacity | Messages | Throughput | Producer retries | Consumer retries | Raw file |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| TODO | TODO | TODO | TODO | TODO | TODO | TODO |
+|---|---:|---:|---:|---:|---:|---|
+| Not yet published | - | - | - | - | - | - |
 
 ## SPSC latency results table
 
 | Benchmark | Capacity | Messages | p50 ns | p95 ns | p99 ns | p999 ns | min ns | max ns | Raw file |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Not yet published | - | - | - | - | - | - | - | - | - |
 
 ## Payload-size comparison table
 
 | Benchmark | Capacity | Payload bytes | Messages | Items/s | Bytes/s | Raw file |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| TODO | TODO | TODO | TODO | TODO | TODO | TODO |
+|---|---:|---:|---:|---:|---:|---|
+| Not yet published | - | - | - | - | - | - |
 
 ## Broker end-to-end results table
 
 | Benchmark | Mode | Capacity | Payload bytes | Messages/items | Items/s | WAL bytes written | WAL records written | Raw file |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
-
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| Not yet published | - | - | - | - | - | - | - | - |
 
 ## Batch publish results table
 
 | Benchmark | Capacity | Batch size | Payload bytes | Items/s | Raw file |
-| --- | ---: | ---: | ---: | ---: | --- |
-| TODO | TODO | TODO | TODO | TODO | TODO |
+|---|---:|---:|---:|---:|---|
+| Not yet published | - | - | - | - | - |
 
 ## Zero-copy SPSC results table
 
 | Benchmark | Capacity | Payload bytes | Items/s | Raw file |
-| --- | ---: | ---: | ---: | --- |
-| TODO | TODO | TODO | TODO | TODO |
+|---|---:|---:|---:|---|
+| Not yet published | - | - | - | - |
 
 ## Spin-wait microbenchmark results table
 
 | Benchmark | Operation | Time | Raw file |
-| --- | --- | ---: | --- |
-| TODO | TODO | TODO | TODO |
+|---|---|---:|---|
+| Not yet published | - | - | - |
 
-## Interpretation notes
+## Warnings
 
-TODO: Add interpretation only after measured raw outputs exist. Keep notes specific to the hardware, OS, build type, and benchmark command used for the run.
-
-## Limitations
-
-- These results are not currently official measured numbers.
-- SPSC tables describe queue benchmarks.
-- The broker end-to-end table is for the Phase 10 local broker benchmark once measured.
-- Do not treat broker end-to-end results as networking, IPC, production persistence, or HFT claims.
-- Phase 12 benchmark tables are placeholders until raw Release benchmark outputs exist.
-- Synthetic Phase 12 benchmark results must not be presented as production or HFT latency claims.
-- Spin-wait results are not end-to-end queue or broker latency.
+- No official numbers without raw outputs.
+- Laptop/macOS results are development results unless clearly labeled otherwise.
+- No HFT-ready claims.
+- Spin-wait microbenchmark results are not broker latency.
 - Debug builds must not be reported.
-- Laptop, macOS, thermally constrained, or busy-system results should be labeled as development measurements.
-- Do not add production-ready or HFT-ready claims.
+- Benchmark smoke checks are not official performance results.

@@ -8,6 +8,14 @@ The format is based on Keep a Changelog style, and this project is moving toward
 
 ### Added
 
+- Final portfolio README rewrite with centered hero, badge rows, navigation, inline Mermaid diagrams, and honest status notes.
+- Deep architecture documentation in `docs/architecture.md`.
+- Mermaid diagrams replacing generated diagram image assets; no PNG diagrams are required for Phase 13.
+- Honest limitations document in `docs/limitations.md`.
+- Interview preparation notes in `docs/interview-notes.md`.
+- v0.1.0 candidate release notes in `RELEASE_NOTES_v0.1.0.md`.
+- Benchmark reporting polish for methodology and performance-results documentation.
+
 - Batch broker API with batch publish/consume support.
 - Experimental zero-copy SPSC queue with reservation/construct/commit/cancel workflow.
 - Spin-wait utility and portable `cpu_relax` helper.
@@ -28,7 +36,7 @@ The format is based on Keep a Changelog style, and this project is moving toward
 
 ### Changed
 
+- Project map and agent guidance now reflect completion through Phase 13 documentation/portfolio packaging.
+- Ring-buffer, memory-ordering, WAL, benchmark methodology, performance results, and release checklist docs polished for Phase 13.
 - Benchmark runner now includes Phase 12 benchmark executables.
-- README, project map, and agent guidance updated to reflect Phase 12 as implemented.
 - CMake now supports build/install interface include directories.
-- README now reflects the current Phase 12 status while preserving Phase 11 quality automation notes.

@@ -2,15 +2,15 @@
 
 ## Project summary
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 12: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, WAL-backed persistent broker API, Phase 9 CLI toolkit, Phase 10 metrics/diagnostics/observability, Phase 11 CI/sanitizer/static-analysis/package verification, and Phase 12 BatchBroker, ZeroCopySpsc, SpinWait/cpu_relax utility, CPU affinity helper, benchmarks, and docs. It is not production-ready and does not yet include final portfolio packaging, networking, or official measured benchmark claims.
+Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The current repository is complete through Phase 13: it includes the reusable foundation, SPSC queue, mmap layer, WAL writer/reader, in-memory broker API, WAL-backed persistent broker API, Phase 9 CLI toolkit, Phase 10 metrics/diagnostics/observability, Phase 11 CI/sanitizer/static-analysis/package verification, Phase 12 BatchBroker, ZeroCopySpsc, SpinWait/cpu_relax utility, CPU affinity helper, benchmarks, docs, and Phase 13 portfolio documentation, inline Mermaid diagrams, limitations, interview notes, and v0.1.0 release notes. It is not production-ready and does not include networking or official measured benchmark claims.
 
 ## Current phase
 
-Phase 12 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs, plus Phase 9 CLI argument parsing helpers, five CLI apps, CLI args tests, CLI guide, README demo flow, Phase 10 metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, metrics docs, broker end-to-end benchmark, Phase 11 GitHub Actions CI, sanitizer workflow, benchmark smoke workflow, CMake sanitizer options, clang-tidy integration, install/export package support, contributing guide, changelog, release checklist, and Phase 12 batch broker API, experimental zero-copy SPSC, SpinWait/cpu_relax utilities, CPU affinity helpers, Phase 12 tests, Phase 12 benchmarks, low-latency tuning docs, and HFT-style design notes.
+Phase 13 has been completed. The repository includes the Phase 0 setup, Phase 1 CMake/library/test skeleton, Phase 2 core public types and message model, Phase 3 SPSC ring buffer v1, Phase 4 SPSC concurrency-correctness hardening, Phase 5 benchmark framework and honest performance-reporting docs, Phase 6 memory-mapped file abstraction, Phase 7 WAL writer/reader persistence foundation, Phase 8 broker integration with in-memory broker API, persistent broker API, WAL-before-queue semantics, typed replay, broker examples, broker tests, and broker API docs, plus Phase 9 CLI argument parsing helpers, five CLI apps, CLI args tests, CLI guide, README demo flow, Phase 10 metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, metrics docs, broker end-to-end benchmark, Phase 11 GitHub Actions CI, sanitizer workflow, benchmark smoke workflow, CMake sanitizer options, clang-tidy integration, install/export package support, contributing guide, changelog, release checklist, Phase 12 batch broker API, experimental zero-copy SPSC, SpinWait/cpu_relax utilities, CPU affinity helpers, Phase 12 tests, Phase 12 benchmarks, low-latency tuning docs, HFT-style design notes, and Phase 13 final documentation/portfolio packaging.
 
 ## Next phase
 
-Phase 13 is next: final documentation, portfolio packaging, diagrams, release notes, and final presentation polish. Do not implement Phase 13 unless the active task explicitly asks for it.
+Phase 13 has been implemented: final documentation, portfolio packaging, inline Mermaid diagrams, release notes, limitations, and interview-readiness polish are present. Future tasks should remain scoped and must not overclaim production readiness.
 
 ## Phase boundaries
 
@@ -27,7 +27,7 @@ Phase 13 is next: final documentation, portfolio packaging, diagrams, release no
 - Phase 10 completed: metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, docs, and broker end-to-end benchmark.
 - Phase 11 completed: GitHub Actions CI, sanitizer jobs, clang-tidy static analysis, benchmark smoke workflow, CMake sanitizer configuration, CMake install/export package support, contributor guide, changelog, and release checklist.
 - Phase 12 completed: batch broker API, experimental zero-copy SPSC reservation API, spin-wait utilities, Linux-first CPU affinity helpers, Phase 12 benchmarks, low-latency tuning docs, and HFT-style design notes.
-- Phase 13 later: final documentation, portfolio packaging, diagrams, and release notes.
+- Phase 13 completed: final portfolio README, architecture docs, inline Mermaid diagrams, limitations doc, interview notes, benchmark reporting polish, release checklist updates, and v0.1.0 candidate release notes.
 
 ## Current build targets
 
@@ -135,13 +135,18 @@ Phase 13 is next: final documentation, portfolio packaging, diagrams, release no
 
 - Measured performance claims that are not backed by raw benchmark outputs.
 - MPMC queues unless explicitly requested.
-- Phase 13 portfolio/release assets such as final diagrams, release notes, or final benchmark tables unless explicitly requested.
 - Networking, IPC broker service behavior, or live inter-process subscriptions.
 - New external dependencies unless the active phase explicitly asks for them.
 
 ## Do not overclaim
 
 Do not add fake performance numbers, production-ready claims, HFT-ready claims, or wording that implies networking, multi-producer/multi-consumer support, live inter-process broker subscriptions, production persistence, or official benchmark results are complete. Phase 11/12 provide CI, sanitizers, clang-tidy, benchmark smoke checks, CMake package install/export support, and low-latency comparison APIs/benchmarks, but these verification tools do not make the project production-ready. The manual SPSC stress tool is for correctness/stress validation only and must not be presented as a benchmark result.
+
+## Diagram rules
+
+- Use Mermaid diagrams directly in Markdown for architecture, ring-buffer, and WAL flow diagrams.
+- Do not create a documentation image-asset directory or PNG/SVG diagram assets unless a future task explicitly asks for image files.
+- Do not reference generated image files for Phase 13 diagrams.
 
 ## Style rules
 
@@ -152,7 +157,7 @@ Do not add fake performance numbers, production-ready claims, HFT-ready claims, 
 
 ## Expected future layout
 
-Future phases may expand `include/aether/`, `src/`, `tests/`, `benchmarks/`, and `docs/` for final portfolio documentation and explicitly requested future features. `.github/workflows/` already contains Phase 11 CI, sanitizer, and benchmark smoke workflows. Do not create future-phase docs or directories early unless explicitly requested.
+Future phases may expand `include/aether/`, `src/`, `tests/`, `benchmarks/`, and `docs/` for explicitly requested future features. `.github/workflows/` already contains Phase 11 CI, sanitizer, and benchmark smoke workflows. Do not create future-phase docs or directories early unless explicitly requested.
 
 ## Local verification
 
