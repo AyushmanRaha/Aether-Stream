@@ -67,7 +67,7 @@ Expected<WalRecordView> WalReader::next() noexcept {
 
     const byte_count_t total_size = record_total_size(header);
     if (total_size < header.header_size || total_size > remaining) {
-        // Phase 7 treats an incomplete final record as a clean stop so replay can ignore torn
+        // Treat an incomplete final record as a clean stop so replay can ignore torn
         // tails.
         return Status{StatusCode::empty, "partial wal record"};
     }

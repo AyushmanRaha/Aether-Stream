@@ -1,22 +1,24 @@
 # Benchmark Methodology
 
+Aether-Stream includes benchmark executables for local experiments and regression checks. Benchmark numbers are not published unless raw outputs and environment metadata are committed and linked.
+
 ## Scope
 
-The benchmark suite covers:
+Benchmarks cover:
 
 - SPSC throughput;
 - SPSC latency;
-- payload-size comparison;
-- broker end-to-end flow;
-- batch publish;
+- payload-size effects;
+- broker end-to-end local publish/consume flow;
+- batch publishing;
 - zero-copy SPSC;
-- spin-wait microbenchmark.
+- spin-wait primitives.
 
-Benchmarks are for reproducible local experiments and honest reporting. They are not networking, IPC, production durability, or HFT-readiness claims.
+They do not measure networking, distributed behavior, production durability, or cross-process service behavior.
 
-## Canonical benchmark workflow
+## Canonical command
 
-Run from the repository root:
+Run the suite from the repository root:
 
 ```sh
 ./scripts/run_benchmarks.sh
@@ -28,64 +30,32 @@ For shorter exploratory runs:
 ./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
 ```
 
-The runner configures a Release build with tests, examples, tools, apps, and benchmarks enabled; builds benchmark targets; runs CTest; captures environment metadata; and writes raw benchmark output.
+## Raw result directory
 
-## Raw result storage
+The runner writes output under:
 
 ```text
 benchmark-results/YYYYMMDD-HHMMSS/
 ```
 
-Each benchmark emits `.txt` and `.json` files. `environment.txt` captures metadata.
+Preserve the generated `.txt`, `.json`, and environment metadata files before publishing any values.
 
-## Captured environment metadata
+## Build requirements
 
-The runner records available details including:
+Publishable measurements should use Release builds. Debug builds, sanitizer builds, and benchmark smoke jobs are useful for validation but should not be reported as performance results.
 
-- git commit/status;
-- OS details;
-- CPU/RAM details where available;
-- CMake version;
-- compiler version.
+## Smoke checks are not results
 
-## Benchmark executables
+The benchmark-smoke workflow intentionally uses short runs to confirm executable health. Short smoke runs are not stable benchmark evidence and should not be copied into performance tables.
 
-- `bench_spsc_throughput`
-- `bench_spsc_latency`
-- `bench_payload_sizes`
-- `bench_broker_end_to_end`
-- `bench_batch_publish`
-- `bench_zero_copy_spsc`
-- `bench_spin_wait`
+## Publishing future numbers honestly
 
-## Reporting rules
+Future results, including planned M1 MacBook Air local measurements, should include:
 
-Explicitly forbidden:
+- environment summary;
+- exact benchmark command;
+- raw output path;
+- copied values from raw output only;
+- notes about thermal, scheduler, affinity, or platform limitations.
 
-- Debug benchmark reporting;
-- cherry-picked results without raw output paths;
-- manual stress tool output as benchmark results;
-- HFT or production claims from local laptop results;
-- p50/p95/p99/p999 or throughput numbers that are not copied from raw benchmark outputs.
-
-## Platform caveats
-
-macOS and Apple Silicon are excellent development environments but may have power-management, scheduler, and thermal behavior that makes results unsuitable for final low-latency claims. Linux pinned-core measurements can be more controlled, but only if the environment, kernel behavior, CPU isolation, governor, background load, and raw outputs are documented. CPU affinity helpers are Linux-first; macOS fallback behavior means affinity conclusions must be platform-specific.
-
-## Benchmark meanings
-
-- SPSC throughput measures ordered queue transfer throughput.
-- SPSC latency measures approximate queue transfer visibility for timestamped payloads.
-- Payload-size comparison measures queue behavior with different object sizes.
-- Broker end-to-end measures local publish/consume paths with WAL-disabled and WAL-enabled variants.
-- Batch publish compares single-message and batch broker usage patterns.
-- Zero-copy SPSC compares normal insertion against reserve/construct/commit insertion.
-- Spin-wait is a synthetic primitive microbenchmark and is not broker latency.
-
-## Publishing a result
-
-1. Run `./scripts/run_benchmarks.sh`.
-2. Keep the full `benchmark-results/YYYYMMDD-HHMMSS/` directory.
-3. Copy environment details from `environment.txt`.
-4. Copy measured values from raw `.txt` or `.json` files.
-5. Link every published table row to its raw file.
+Do not add throughput, latency, percentile, CPU, OS, or memory claims unless committed raw output proves them.

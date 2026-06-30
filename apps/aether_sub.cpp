@@ -83,8 +83,7 @@ int main(int argc, char** argv) {
         std::cout << aether::cli::sub_help();
         return 0;
     }
-    std::cout
-        << "Phase 9 local demo subscriber: no networking and no remote/live broker subscription.\n";
+    std::cout << "Local demo subscriber: no networking and no remote/live broker subscription.\n";
     if (options.wal_path.empty()) {
         return dispatch_local(options);
     }

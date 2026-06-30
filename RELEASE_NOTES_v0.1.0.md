@@ -8,14 +8,13 @@ Documentation-ready v0.1.0 candidate. Do not treat this file as evidence that a 
 
 - C++20 library target with public alias `aether::stream`.
 - Lock-free SPSC ring buffer for exactly one producer and one consumer.
-- In-memory broker and WAL-backed persistent broker APIs.
+- In-memory broker, batch broker, and WAL-backed persistent broker APIs.
 - mmap-backed WAL persistence with explicit record format and CRC32 validation.
 - CLI toolkit for local demos, WAL publishing, replay, and inspection.
 - Metrics counters, snapshots, and latency histogram.
-- Google Benchmark suite and raw-output benchmark runner.
+- Benchmark suite and raw-output benchmark runner.
 - CI, sanitizers, clang-tidy, format checks, benchmark smoke, and package install verification.
-- Phase 12 additions: batch broker, experimental zero-copy SPSC, spin-wait helpers, CPU-affinity helper, low-latency benchmarks, tuning docs.
-- Phase 13 additions: portfolio README rewrite, architecture docs, inline Mermaid diagrams, limitations doc, interview notes, release notes, benchmark reporting polish.
+- Experimental zero-copy SPSC, spin-wait helpers, CPU-affinity helper, low-latency benchmarks, and tuning documentation.
 
 ## What is included
 
@@ -24,7 +23,7 @@ Documentation-ready v0.1.0 candidate. Do not treat this file as evidence that a 
 - Examples under `examples/`.
 - CLI applications under `apps/`.
 - CTest test executables under `tests/`.
-- Google Benchmark executables under `benchmarks/`.
+- Benchmark executables under `benchmarks/`.
 - Documentation under `docs/`.
 - CMake install/export package support.
 
@@ -36,16 +35,11 @@ Documentation-ready v0.1.0 candidate. Do not treat this file as evidence that a 
 - Production durability, recovery, or WAL repair guarantees.
 - Auth, TLS, ACLs, replication, clustering, or service discovery.
 - Official benchmark numbers without raw `./scripts/run_benchmarks.sh` output.
-- HFT-ready claims.
 
 ## Build and test commands
 
 ```sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug \
-  -DAETHER_BUILD_TESTS=ON \
-  -DAETHER_BUILD_EXAMPLES=ON \
-  -DAETHER_BUILD_TOOLS=ON \
-  -DAETHER_BUILD_APPS=ON
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug   -DAETHER_BUILD_TESTS=ON   -DAETHER_BUILD_EXAMPLES=ON   -DAETHER_BUILD_TOOLS=ON   -DAETHER_BUILD_APPS=ON
 cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
 ```

@@ -37,7 +37,7 @@ Start with scope: this is a local C++20 toolkit, not a distributed broker. Then 
 - CLI tools: `aether_bench`, `aether_pub`, `aether_sub`, `aether_replay`, `aether_inspect_wal`.
 - Google Benchmark suite.
 - CI, sanitizers, clang-tidy, format, benchmark smoke, and package verification.
-- Phase 12 low-latency APIs: `BatchBroker`, experimental `ZeroCopySpsc`, `SpinWait`, `cpu_relax`, CPU affinity helper.
+- The current implementation low-latency APIs: `BatchBroker`, experimental `ZeroCopySpsc`, `SpinWait`, `cpu_relax`, CPU affinity helper.
 
 ## Hardest engineering problems
 
@@ -79,9 +79,9 @@ It uses monotonic logical counters rather than only physical indexes. Empty is `
 
 The reader stops with `StatusCode::corrupted_record` for invalid magic, version, header size, or checksum mismatch. Zero-filled or incomplete tails are treated as clean EOF/stop. There is no repair or truncation tooling.
 
-### Why not claim HFT-ready?
+### Why not claim production-ready?
 
-The project has HFT-style primitives and design notes, but HFT readiness requires controlled hardware, kernel tuning, networking, fault tolerance, operations, and verified latency distributions. This repository does not claim those.
+The project has low-latency-style primitives and design notes, but low-latency readiness requires controlled hardware, kernel tuning, networking, fault tolerance, operations, and verified latency distributions. This repository does not claim those.
 
 ### What would you improve next?
 

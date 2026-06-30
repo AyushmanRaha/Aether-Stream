@@ -1,8 +1,8 @@
 # Memory-mapped file notes
 
-Phase 6 adds a small memory-mapped file primitive for Aether-Stream. It is intentionally only an operating-system resource wrapper; it is not a WAL, a broker, or a durability policy.
+Aether-Stream includes a small memory-mapped file primitive. It is intentionally only an operating-system resource wrapper; it is not a WAL, a broker, or a durability policy.
 
-Historical note: this document describes the Phase 6 mmap layer. Phase 7 has since added standalone WAL record, writer, reader, checksum, and replay support on top of `MmapFile`. The separation is intentional: `MmapFile` remains a low-level mapped-file primitive, while WAL record semantics live under `include/aether/wal/` and `src/wal/`.
+The WAL record, writer, reader, checksum, and replay support are built on top of `MmapFile`. The separation is intentional: `MmapFile` remains a low-level mapped-file primitive, while WAL record semantics live under `include/aether/wal/` and `src/wal/`.
 
 ## What `mmap` means
 
@@ -10,7 +10,7 @@ Historical note: this document describes the Phase 6 mmap layer. Phase 7 has sin
 
 ## Why this layer comes before WAL
 
-Aether-Stream is planned to include mmap-backed persistence in later phases. Before adding WAL records, replay, recovery, or broker semantics, raw POSIX file descriptors and mapping calls need to be isolated behind a small, testable RAII class. `aether::io::MmapFile` provides that boundary so later WAL code can work with mapped bytes instead of direct OS calls.
+Raw POSIX file descriptors and mapping calls are isolated behind a small, testable RAII class. `aether::io::MmapFile` provides that boundary so WAL code can work with mapped bytes instead of direct OS calls.
 
 ## `MmapFile` lifecycle
 
@@ -44,11 +44,11 @@ Operating systems manage mappings using memory pages. Callers do not need to req
 
 ## Platform scope
 
-Phase 6 focuses on POSIX mmap behavior for macOS and Linux. The public class keeps POSIX headers out of the public header. Non-POSIX platforms receive a clear `io_error` fallback instead of a Windows mapping implementation.
+The implementation focuses on POSIX mmap behavior for macOS and Linux. The public class keeps POSIX headers out of the public header. Non-POSIX platforms receive a clear `io_error` fallback instead of a Windows mapping implementation.
 
-## Phase 6 non-goals
+## Non-goals
 
-Phase 6 deliberately does not add:
+This layer deliberately does not add:
 
 - a WAL binary format;
 - WAL writer, reader, replay, or recovery logic;
@@ -59,4 +59,4 @@ Phase 6 deliberately does not add:
 - metrics or diagnostics;
 - performance claims.
 
-Phase 7 now builds the standalone WAL writer and reader on top of `MmapFile` without mixing WAL record semantics into this low-level mapping primitive.
+The standalone WAL writer and reader build on top of `MmapFile` without mixing WAL record semantics into this low-level mapping primitive.

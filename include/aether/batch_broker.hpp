@@ -14,7 +14,7 @@
 namespace aether {
 
 // In-memory SPSC broker with batch-oriented APIs. Persistent/WAL batching is
-// deliberately not included in Phase 12 so the durability protocol can remain
+// deliberately not included so the durability protocol can remain
 // simple and independently reviewable.
 template <typename T, std::size_t Capacity> class BatchBroker {
 public:

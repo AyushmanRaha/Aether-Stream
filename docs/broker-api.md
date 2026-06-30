@@ -1,12 +1,12 @@
 # Broker API
 
-Phase 8 exposes the developer-facing broker API for Aether-Stream. The product-facing API is now a typed in-memory broker over the existing SPSC queue, plus a WAL-backed persistent broker that appends records before publishing them to the in-memory queue.
+Aether-Stream exposes typed local broker APIs over the existing SPSC queue, plus a WAL-backed persistent broker that appends records before publishing them to the in-memory queue.
 
 ## Status
 
 Broker operations return `aether::Status` instead of throwing exceptions for normal full, empty, configuration, WAL, or corruption outcomes. Check `status.is_ok()` or the explicit `bool` conversion before assuming an operation succeeded.
 
-Common Phase 8 statuses include:
+Common statuses include:
 
 - `StatusCode::ok`: operation succeeded.
 - `StatusCode::full`: `try_publish` could not enqueue because the queue is full.
@@ -44,7 +44,7 @@ const auto consume_status = broker.try_consume(out);
 
 ## Persistent broker
 
-`aether::PersistentBroker<T, Capacity>` combines the same in-memory broker API with the Phase 7 append-only WAL writer.
+`aether::PersistentBroker<T, Capacity>` combines the same in-memory broker API with the append-only WAL writer.
 
 ```cpp
 #include <aether/persistent_broker.hpp>
@@ -65,7 +65,7 @@ aether::PersistentBroker<OrderEvent, 65536> broker(wal);
 const auto status = broker.try_publish(OrderEvent{1, 101.25, 10});
 ```
 
-`T` must be trivially copyable. Phase 8 typed persistence serializes `T` by copying its C++ object representation into the WAL payload and reconstructs it with `std::memcpy` during typed replay. This is intended for same-program/same-platform replay of simple event structs. Stable cross-language schemas, schema evolution, endian conversion, and ABI-independent persistence are not part of Phase 8.
+`T` must be trivially copyable. Typed persistence serializes `T` by copying its C++ object representation into the WAL payload and reconstructs it with `std::memcpy` during typed replay. This is intended for same-program/same-platform replay of simple event structs. Stable cross-language schemas, schema evolution, endian conversion, and ABI-independent persistence are not part of this API.
 
 ## Durability semantics
 
@@ -78,11 +78,11 @@ const auto status = broker.try_publish(OrderEvent{1, 101.25, 10});
 5. If WAL append fails, it returns the WAL error and does not publish to the queue.
 6. If WAL append succeeds, it publishes the value to the in-memory SPSC queue.
 
-A successful persistent `try_publish` means the value was appended to the WAL before it became visible to the consumer. Phase 8 uses the existing WAL flush behavior: `flush_on_commit=true` requests a flush on each append, and `flush()` can be called explicitly. Do not treat this as a blanket crash-proof fsync guarantee without considering the configured flush policy and platform storage semantics.
+A successful persistent `try_publish` means the value was appended to the WAL before it became visible to the consumer. The persistent broker uses the existing WAL flush behavior: `flush_on_commit=true` requests a flush on each append, and `flush()` can be called explicitly. Do not treat this as a blanket crash-proof fsync guarantee without considering the configured flush policy and platform storage semantics.
 
 ## Concurrency model
 
-Both broker types are SPSC only: exactly one producer may call publish operations, and exactly one consumer may call consume operations. Multiple producers or multiple consumers are unsupported. Phase 8 intentionally does not add blocking publish/consume APIs; callers should handle `StatusCode::full` and `StatusCode::empty` explicitly.
+Both broker types are SPSC only: exactly one producer may call publish operations, and exactly one consumer may call consume operations. Multiple producers or multiple consumers are unsupported. The broker API intentionally does not add blocking publish/consume APIs; callers should handle `StatusCode::full` and `StatusCode::empty` explicitly.
 
 ## Configuration
 
@@ -112,7 +112,7 @@ For terminal demos, see `docs/cli-guide.md`. The CLI tools exercise the local br
 
 ## Metrics and diagnostics
 
-Phase 10 adds local metrics and diagnostics for both broker implementations without changing their SPSC semantics. Both `Broker<T, Capacity>` and `PersistentBroker<T, Capacity>` expose:
+Local metrics and diagnostics are available for both broker implementations without changing their SPSC semantics. Both `Broker<T, Capacity>` and `PersistentBroker<T, Capacity>` expose:
 
 - `metrics_snapshot()`;
 - `snapshot()` as a short alias for `metrics_snapshot()`;
@@ -151,7 +151,7 @@ auto metrics = broker.metrics_snapshot();
 ## Limitations
 
 - No networking.
-- Phase 9 CLI demos exist, but there is still no networked broker service or live inter-process subscriber.
+- CLI demos exist, but there is still no networked broker service or live inter-process subscriber.
 - Metrics exist, but no structured logging, exporter, Prometheus integration, or network observability exists yet.
 - Metrics do not make the broker production-ready.
 - Metrics are local in-process counters and diagnostic helpers.

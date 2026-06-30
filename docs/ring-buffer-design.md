@@ -2,7 +2,7 @@
 
 ## Current status
 
-This document describes the final Phase 13-polished design notes for the `aether::SpscRingBuffer<T, Capacity>` implementation in `include/aether/spsc_ring_buffer.hpp`. Phase 12 added `BatchBroker` and experimental `ZeroCopySpsc`, but the core `SpscRingBuffer` design remains intentionally SPSC, independent, and reusable.
+This document describes the `aether::SpscRingBuffer<T, Capacity>` implementation in `include/aether/spsc_ring_buffer.hpp`. `BatchBroker` and experimental `ZeroCopySpsc` build around related local messaging needs, but the core `SpscRingBuffer` design remains intentionally SPSC, independent, and reusable.
 
 ## Scope and non-goals
 
@@ -95,7 +95,7 @@ The owner of a counter can use relaxed operations for local observations. Cross-
 | Consumer local `tail_` load | relaxed | Only consumer advances `tail_`. |
 | Consumer publishes `tail_` | release | Makes slot destruction visible to producer. |
 
-## Phase 12 relationship
+## Relationship to related APIs
 
 `BatchBroker` batches broker-level calls over queue operations. `ZeroCopySpsc` explores reservation/commit semantics. Neither changes the original `SpscRingBuffer` contract: this queue remains SPSC only and does not become a cross-process, blocking, MPSC, or MPMC primitive.
 
@@ -110,7 +110,7 @@ Relevant files:
 - `tests/test_spsc_stress.cpp`
 - `tools/stress_spsc.cpp`
 
-Phase 11 added CI, sanitizer workflows, clang-tidy integration, and package verification. These checks improve confidence, but they do not justify production-ready or HFT-ready claims.
+CI, sanitizer workflows, clang-tidy integration, and package verification improve confidence, but they do not justify production-readiness claims.
 
 ## How to explain this in an interview
 
