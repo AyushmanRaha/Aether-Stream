@@ -45,8 +45,6 @@ It is intentionally local-first: no networking, no distributed cluster, no live 
 - [Architecture at a glance](#architecture-at-a-glance)
 - [Core feature tour](#core-feature-tour)
 - [Quick Start](#quick-start)
-- [Build and test locally](#build-and-test-locally)
-- [CLI demo flow](#cli-demo-flow)
 - [Benchmarks](#benchmarks)
 - [Docs and deep dives](#docs-and-deep-dives)
 - [Testing and CI](#testing-and-ci)
@@ -158,15 +156,41 @@ Benchmark targets cover SPSC throughput, SPSC latency, payload-size comparison, 
 
 ## Quick Start
 
-```sh
+This is the fast path for a local build, test run, smoke example, and CLI demo. For the complete beginner-friendly setup, testing, CLI, sanitizer, install, benchmark, and troubleshooting walkthrough, see the [Full setup and CLI guide](docs/cli-guide.md).
+
+### 1. Install prerequisites
+
+macOS:
+
+```bash
+brew install git cmake ninja llvm
+```
+
+Linux:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential cmake ninja-build git
+```
+
+Windows:
+
+Use WSL2, then follow the Linux commands inside the WSL distribution. Native Windows mmap behavior is not the main verified path.
+
+### 2. Clone and build
+
+```bash
 git clone https://github.com/AyushmanRaha/Aether-Stream.git
 cd Aether-Stream
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+
+cmake -S . -B build/debug -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug \
   -DAETHER_BUILD_TESTS=ON \
   -DAETHER_BUILD_EXAMPLES=ON \
   -DAETHER_BUILD_TOOLS=ON \
   -DAETHER_BUILD_APPS=ON \
   -DAETHER_BUILD_BENCHMARKS=OFF
+
 cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
 ./build/debug/examples/smoke
@@ -178,110 +202,36 @@ Expected smoke output:
 Aether-Stream 0.1.0
 ```
 
-## Build and test locally
+A successful CTest run should end with `100% tests passed, 0 tests failed out of 20`.
 
-### macOS
-
-```bash
-brew install cmake ninja
-git clone https://github.com/AyushmanRaha/Aether-Stream.git
-cd Aether-Stream
-
-cmake -S . -B build/debug -G Ninja \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DAETHER_BUILD_TESTS=ON \
-  -DAETHER_BUILD_EXAMPLES=ON \
-  -DAETHER_BUILD_TOOLS=ON \
-  -DAETHER_BUILD_APPS=ON \
-  -DAETHER_BUILD_BENCHMARKS=OFF
-
-cmake --build build/debug
-ctest --test-dir build/debug --output-on-failure
-./build/debug/examples/smoke
-```
-
-Run benchmarks separately only when you want local benchmark output:
+### 3. Try the CLI demo
 
 ```bash
-./scripts/run_benchmarks.sh
-```
-
-### Linux
-
-```bash
-sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build git
-
-git clone https://github.com/AyushmanRaha/Aether-Stream.git
-cd Aether-Stream
-
-cmake -S . -B build/debug -G Ninja \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DAETHER_BUILD_TESTS=ON \
-  -DAETHER_BUILD_EXAMPLES=ON \
-  -DAETHER_BUILD_TOOLS=ON \
-  -DAETHER_BUILD_APPS=ON \
-  -DAETHER_BUILD_BENCHMARKS=OFF
-
-cmake --build build/debug
-ctest --test-dir build/debug --output-on-failure
-./build/debug/examples/smoke
-```
-
-Run benchmarks separately only when you want local benchmark output:
-
-```bash
-./scripts/run_benchmarks.sh
-```
-
-### Windows
-
-The recommended Windows path is WSL2 because the current mmap implementation is POSIX-oriented and native Windows testing is not presented as fully verified.
-
-From PowerShell:
-
-```powershell
-wsl --install
-```
-
-Then inside Ubuntu on WSL:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y build-essential cmake ninja-build git
-
-git clone https://github.com/AyushmanRaha/Aether-Stream.git
-cd Aether-Stream
-
-cmake -S . -B build/debug -G Ninja \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DAETHER_BUILD_TESTS=ON \
-  -DAETHER_BUILD_EXAMPLES=ON \
-  -DAETHER_BUILD_TOOLS=ON \
-  -DAETHER_BUILD_APPS=ON \
-  -DAETHER_BUILD_BENCHMARKS=OFF
-
-cmake --build build/debug
-ctest --test-dir build/debug --output-on-failure
-./build/debug/examples/smoke
-```
-
-## CLI demo flow
-
-```sh
-cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release \
+cmake -S . -B build/release -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
   -DAETHER_BUILD_TESTS=ON \
   -DAETHER_BUILD_EXAMPLES=ON \
   -DAETHER_BUILD_TOOLS=ON \
   -DAETHER_BUILD_APPS=ON
+
 cmake --build build/release
 
+mkdir -p data
 ./build/release/apps/aether_bench --messages 100000 --payload-size 64 --capacity 1024
 ./build/release/apps/aether_pub --wal data/sample.wal --messages 1000
 ./build/release/apps/aether_inspect_wal --wal data/sample.wal
 ./build/release/apps/aether_replay --wal data/sample.wal --limit 10
 ./build/release/apps/aether_sub --wal data/sample.wal --limit 10
 ```
+
+Notes:
+
+- `aether_bench` is a local demo benchmark, not official performance data.
+- `aether_pub` creates a local WAL file at `data/sample.wal`.
+- `aether_inspect_wal`, `aether_replay`, and `aether_sub --wal` inspect or replay that WAL.
+- There is no networking, daemon, or live remote broker subscription.
+
+For the full chronological workflow, command-by-command explanations, sanitizer checks, package install smoke test, benchmark workflow, and troubleshooting notes, read the [Full setup and CLI guide](docs/cli-guide.md).
 
 ## Benchmarks
 
@@ -307,7 +257,7 @@ These are local synthetic measurements from a redacted Apple M1 MacBook Air run.
 | [mmap notes](docs/mmap-notes.md) | POSIX-oriented `MmapFile` behavior and non-goals. |
 | [WAL format](docs/wal-format.md) | Record layout, checksum policy, reader behavior, and replay limits. |
 | [Broker API](docs/broker-api.md) | In-memory, batch, and persistent broker usage and limitations. |
-| [CLI guide](docs/cli-guide.md) | Local CLI apps, demo flow, and output expectations. |
+| [CLI guide](docs/cli-guide.md) | Complete beginner-friendly setup, CLI usage, testing, sanitizer, install, benchmark, and troubleshooting walkthrough. |
 | [Metrics](docs/metrics.md) | Counters, snapshots, latency histogram, and CLI summaries. |
 | [Benchmark methodology](docs/benchmark-methodology.md) | How to run, preserve, and publish benchmark results honestly. |
 | [Performance results](docs/performance-results.md) | Summarized local benchmark results and caveats. |
