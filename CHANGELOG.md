@@ -16,13 +16,13 @@ The format follows Keep a Changelog style. The repository is moving toward an in
 - Metrics counters, immutable snapshots, latency histogram, and CLI metrics summaries.
 - CLI applications for local broker demos, WAL publishing, replay, and inspection.
 - Documentation covering architecture, broker APIs, WAL format, metrics, limitations, benchmarks, low-latency tuning, and release verification.
-- v0.1.0 candidate release notes.
+- Draft v0.1.0 release notes.
 
 ### Changed
 
 - README and repository-facing documentation now describe the current codebase directly and keep limitations prominent.
 - Documentation filenames now use professional current-state names rather than numbered build-history names.
-- Benchmark documentation now keeps official results empty until raw outputs and environment metadata are committed.
+- Benchmark documentation now links summarized results to redacted consolidated benchmark evidence.
 - CMake build output now uses current-state wording.
 
 ### Build and CI
@@ -32,5 +32,7 @@ The format follows Keep a Changelog style. The repository is moving toward an in
 
 ### Documentation
 
+- Added a redacted, consolidated local M1 MacBook Air benchmark results page and linked it from the README and benchmark documentation.
+- Removed audience-specific documentation references so the repository presents itself as a general local C++20 systems project.
 - Repository guide, concepts guide, low-latency tuning notes, and low-latency design notes are current-state references.
 - Release checklist emphasizes local verification, benchmark honesty, and link hygiene.

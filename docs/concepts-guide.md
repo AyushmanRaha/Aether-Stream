@@ -28,7 +28,7 @@ Broker counters and snapshots expose local diagnostic information. The latency h
 
 ## Benchmarks
 
-Benchmark executables exist for queue, broker, batch, zero-copy, payload-size, and spin-wait paths. Publishable numbers must come from `./scripts/run_benchmarks.sh` and preserve raw output plus environment metadata.
+Benchmark executables exist for queue, broker, batch, zero-copy, payload-size, and spin-wait paths. Publishable numbers must come from `./scripts/run_benchmarks.sh` and preserve measured output plus environment metadata as sanitized raw files or consolidated redacted Markdown evidence.
 
 ## Build and verification
 

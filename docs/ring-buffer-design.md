@@ -22,7 +22,7 @@ Unsupported:
 - persistence, WAL storage, network transport, or direct mmap integration inside the queue;
 - official performance claims unless raw benchmark output has been published.
 
-The manual stress tool is for correctness validation only. Performance results must come from `./scripts/run_benchmarks.sh` raw outputs.
+The manual stress tool is for correctness validation only. Performance results must come from preserved `./scripts/run_benchmarks.sh` evidence.
 
 ## Public API overview
 
@@ -112,6 +112,6 @@ Relevant files:
 
 CI, sanitizer workflows, clang-tidy integration, and package verification improve confidence, but they do not justify production-readiness claims.
 
-## How to explain this in an interview
+## Plain-English summary
 
-“I used a bounded SPSC ring buffer because the one-producer/one-consumer contract lets each thread own one logical counter. The producer constructs a payload, then release-stores `head_`; the consumer acquire-loads `head_`, moves and destroys the payload, then release-stores `tail_`. The producer acquire-loads `tail_` before reusing storage. Full and empty are distinguished with monotonic counters, so all slots can be used.”
+A bounded SPSC ring buffer works well here because the one-producer/one-consumer contract lets each thread own one logical counter. The producer constructs a payload, then release-stores `head_`; the consumer acquire-loads `head_`, moves and destroys the payload, then release-stores `tail_`. The producer acquire-loads `tail_` before reusing storage. Full and empty are distinguished with monotonic counters, so all slots can be used.
