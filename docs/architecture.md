@@ -15,6 +15,8 @@ Aether-Stream is intentionally scoped as a local C++20 systems project. It demon
 | Apps | Local CLI demos for benchmark-style flow, WAL publish, replay, and inspect. |
 | Verification | CTest, format checks, sanitizers, clang-tidy, benchmark smoke, package install checks. |
 
+The diagram below traces a call from CLI apps and examples down through the broker layer to the queue, WAL, and metrics components, all of which share the same core types.
+
 ```mermaid
 flowchart LR
     Apps["CLI apps and examples"] --> Broker["Broker APIs"]
@@ -30,6 +32,8 @@ flowchart LR
 ```
 
 ## Persistence flow
+
+The sequence diagram below shows one message being appended to the WAL before it is published to the in-process queue, the WAL-before-queue rule described in docs/wal-format.md.
 
 ```mermaid
 sequenceDiagram

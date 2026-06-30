@@ -1,3 +1,4 @@
+// Creates and exercises a memory-mapped file to confirm MmapFile behavior.
 #include <aether/io/mmap_file.hpp>
 #include <cstring>
 #include <filesystem>

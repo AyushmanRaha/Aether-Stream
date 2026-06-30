@@ -1,5 +1,7 @@
 # Memory Ordering in the SPSC Ring Buffer
 
+Readers who prefer a plain-language explanation first can jump to the "Plain-English summary" at the end of this document before working through the acquire/release details below.
+
 ## Scope
 
 This document explains the acquire/release protocol used by `aether::SpscRingBuffer<T, Capacity>`. It is valid only for exactly one producer thread and exactly one consumer thread.

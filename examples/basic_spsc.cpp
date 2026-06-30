@@ -1,3 +1,4 @@
+// Demonstrates basic SPSC ring buffer publish/consume behavior.
 #include <aether/message.hpp>
 #include <aether/spsc_ring_buffer.hpp>
 #include <array>

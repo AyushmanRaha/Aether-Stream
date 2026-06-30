@@ -1,5 +1,7 @@
 # Aether-Stream WAL Format
 
+In plain terms: a WAL is a journal. Every message the persistent broker publishes is first appended as one self-contained, checksummed entry in this file; only after that append succeeds does the message become visible to the in-process consumer. Replaying the WAL later means reading those entries back in order to reconstruct what was published.
+
 ## Purpose and scope
 
 The WAL is an append-only local persistence format used by `aether::PersistentBroker<T, Capacity>` and the CLI replay/inspection tools. It stores generic message payload bytes; typed replay is a broker-layer convention for trivially copyable same-program payloads.
@@ -58,7 +60,7 @@ sequenceDiagram
     PB->>W: append header + payload with CRC32
     W-->>PB: Status::ok or WAL error
     PB->>Q: publish only after append succeeds
-    R->>W: open WAL file later
+    R->>R: open WAL file later
     R->>R: scan records sequentially
     R->>R: validate magic, version, header, size, checksum
     R-->>P: visit raw or typed same-platform payloads

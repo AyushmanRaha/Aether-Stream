@@ -1,3 +1,4 @@
+// CLI: reads and prints raw WAL records from a local WAL file.
 #include <aether/cli/args.hpp>
 #include <aether/metrics/counters.hpp>
 #include <aether/wal/wal_reader.hpp>

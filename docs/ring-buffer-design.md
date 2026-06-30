@@ -1,5 +1,7 @@
 # Ring Buffer Design
 
+Readers who prefer a plain-language explanation first can jump to the "Plain-English summary" at the end of this document before working through the design details below.
+
 ## Current status
 
 This document describes the `aether::SpscRingBuffer<T, Capacity>` implementation in `include/aether/spsc_ring_buffer.hpp`. `BatchBroker` and experimental `ZeroCopySpsc` build around related local messaging needs, but the core `SpscRingBuffer` design remains intentionally SPSC, independent, and reusable.

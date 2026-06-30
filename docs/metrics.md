@@ -1,6 +1,6 @@
 # Metrics, diagnostics, and observability
 
-Aether-Stream includes lightweight always-on broker counters, immutable metrics snapshots, a diagnostic latency histogram, CLI metrics summaries, and an end-to-end broker benchmark. These features make broker behavior visible without changing the SPSC queue algorithm or WAL record format.
+Aether-Stream includes lightweight always-on broker counters, immutable metrics snapshots, a diagnostic latency histogram, CLI metrics summaries, and an end-to-end broker benchmark. These features make broker behavior visible without changing the SPSC queue algorithm or WAL record format. In plain terms, metrics are a small built-in dashboard: counters track what the broker has done, and the latency histogram tracks how long operations took, without changing how the queue or WAL behave.
 
 ## Snapshot API
 

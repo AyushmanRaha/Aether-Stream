@@ -1,3 +1,4 @@
+// CLI: local subscriber demo; replays a WAL file or runs an in-process publish/consume demo.
 #include <aether/broker.hpp>
 #include <aether/cli/args.hpp>
 #include <aether/persistent_broker.hpp>

@@ -1,3 +1,4 @@
+// CLI: publishes generated demo events into a local WAL-backed broker.
 #include <aether/cli/args.hpp>
 #include <aether/persistent_broker.hpp>
 #include <filesystem>
