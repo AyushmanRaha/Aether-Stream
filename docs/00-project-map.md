@@ -1,22 +1,22 @@
 # Project Map
 
-## Current status: completed through Phase 12
+## Current status: completed through Phase 13
 
-Aether-Stream currently has the Phase 0 through Phase 12 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, typed replay for trivially copyable persistent broker event types, Phase 9 CLI apps, Phase 10 metrics/diagnostics, Phase 11 GitHub Actions CI, sanitizer/static-analysis workflows, benchmark smoke workflow, CMake install/export package support, and Phase 12 batch broker, zero-copy SPSC, spin-wait utility, CPU affinity helper, low-latency benchmarks, low-latency tuning docs, and HFT-style design notes.
+Aether-Stream currently has the Phase 0 through Phase 13 foundation in place: repository setup, a real CMake library/test/example pipeline, core public types, status/error handling, an expected-like result wrapper, configuration structs, a non-owning message model, a header-only SPSC ring buffer, SPSC correctness hardening, utility helpers, examples, CTest coverage, a manual SPSC stress tool, Google Benchmark wiring, benchmark executables, a benchmark runner, benchmark methodology/performance-results docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, an in-memory broker API, a WAL-backed persistent broker API, typed replay for trivially copyable persistent broker event types, Phase 9 CLI apps, Phase 10 metrics/diagnostics, Phase 11 GitHub Actions CI, sanitizer/static-analysis workflows, benchmark smoke workflow, CMake install/export package support, Phase 12 batch broker, zero-copy SPSC, spin-wait utility, CPU affinity helper, low-latency benchmarks, low-latency tuning docs, HFT-style design notes, and Phase 13 portfolio documentation, inline Mermaid diagrams, limitations, interview notes, and v0.1.0 release notes.
 
-The repository now includes the developer-facing broker layer and Phase 12 low-latency API additions. It is still not production-ready. CI, sanitizer jobs, clang-tidy integration, benchmark smoke checks, and CMake package install/export support now exist, and Phase 12 low-latency APIs now exist, but final portfolio/release documentation is still future work. No official measured benchmark results have been committed.
+The repository now includes the developer-facing broker layer, Phase 12 low-latency API additions, and Phase 13 final documentation/portfolio packaging. It is still not production-ready. CI, sanitizer jobs, clang-tidy integration, benchmark smoke checks, CMake package install/export support, and Phase 13 docs now exist. No official measured benchmark results have been committed.
 
 ## Current repository layout
 
-- `README.md` explains the project goal, current Phase 12 status, build/test/benchmark/quality commands, examples, and explicit non-goals for the current implementation.
+- `README.md` is the Phase 13 portfolio front page with centered hero, badges, inline Mermaid diagrams, build/test/benchmark commands, docs links, and explicit non-goals.
 - `LICENSE` contains the MIT license for the project.
 - `.gitignore` excludes local build outputs, logs, persistence files, cache files, and editor artifacts.
 - `.editorconfig` keeps whitespace, line endings, and indentation consistent across editors.
 - `.clang-format` defines the C++ formatting style.
 - `.clang-tidy` defines a moderate static-analysis configuration.
 - `CONTRIBUTING.md` documents contributor build, test, format, sanitizer, and clang-tidy guidance.
-- `CHANGELOG.md` tracks unreleased changes.
-- `AGENTS.md` gives coding agents concise current context, build targets, phase boundaries, and no-overclaim rules.
+- `CHANGELOG.md` tracks unreleased changes, including Phase 13 documentation packaging.
+- `AGENTS.md` gives coding agents concise Phase 13-complete context, build targets, phase boundaries, Mermaid diagram guidance, and no-overclaim rules.
 - `.github/CODEOWNERS` contains repository ownership metadata.
 - `.github/workflows/` contains `ci.yml`, `sanitizer.yml`, and `benchmark-smoke.yml` for Phase 11 quality automation.
 - `cmake/` contains reusable CMake modules, including Phase 11 sanitizer, install, and package config support.
@@ -28,22 +28,26 @@ The repository now includes the developer-facing broker layer and Phase 12 low-l
 - `tests/` contains standalone CTest executables without GoogleTest.
 - `tools/` contains the manual SPSC stress-validation executable.
 - `scripts/` contains local setup, test, and formatting scripts.
-- `docs/` contains this project map, the learning roadmap, SPSC design docs, broker API docs, CLI docs, metrics docs, benchmark docs, mmap notes, WAL format notes, Phase 12 low-latency tuning and HFT-style design notes, and the release checklist.
+- `docs/` contains this project map, the learning roadmap, architecture docs, SPSC design docs, broker API docs, CLI docs, metrics docs, benchmark docs, mmap notes, WAL format notes, Phase 12 low-latency tuning and HFT-style design notes, limitations, interview notes, and the release checklist. README diagrams are inline Mermaid blocks rather than generated image assets.
 
 ## Current docs
 
 - `docs/00-project-map.md`: current repository map, build targets, implemented components, and phase boundaries.
 - `docs/01-learning-roadmap.md`: study path for contributors learning the project phase by phase.
-- `docs/ring-buffer-design.md`: Phase 3-4 SPSC ring-buffer design, API, slot lifecycle, tests, limitations, and future work.
-- `docs/memory-ordering.md`: Phase 4 acquire/release memory-ordering protocol for `SpscRingBuffer<T, Capacity>`.
-- `docs/benchmark-methodology.md`: Phase 5 SPSC, Phase 10 broker, and Phase 12 low-latency benchmark scope, build mode, runner workflow, raw-output policy, and limitations.
-- `docs/performance-results.md`: template for measured performance results; no official measured numbers are committed yet.
+- `docs/architecture.md`: layered architecture, Mermaid diagrams, data flow, metrics flow, build targets, and interview credibility notes.
+- `docs/limitations.md`: explicit concurrency, persistence, deployment, benchmark, experimental API, and production-readiness limitations.
+- `docs/interview-notes.md`: recruiter/interviewer pitch notes, deep-dive outline, tradeoffs, and Q&A.
+- `RELEASE_NOTES_v0.1.0.md`: documentation-ready v0.1.0 candidate release notes.
+- `docs/ring-buffer-design.md`: Phase 13-polished SPSC ring-buffer design, API, slot lifecycle, Mermaid diagram, tests, limitations, and interview explanation.
+- `docs/memory-ordering.md`: acquire/release memory-ordering protocol for `SpscRingBuffer<T, Capacity>` with Mermaid sequence diagram and SPSC-only reasoning.
+- `docs/benchmark-methodology.md`: final benchmark scope, canonical runner workflow, raw-output policy, environment metadata, platform caveats, and reporting prohibitions.
+- `docs/performance-results.md`: publication-ready measured-results template; no official measured numbers are committed yet.
 - `docs/mmap-notes.md`: Phase 6 notes for mmap behavior, `MmapFile` lifecycle, POSIX scope, and non-goals.
-- `docs/wal-format.md`: Phase 7 WAL record format, checksum policy, reader behavior, Phase 8 persistent broker integration note, and limitations.
+- `docs/wal-format.md`: final WAL record format spec, checksum policy, reader behavior, WAL-before-queue semantics, typed replay limits, and corruption/recovery definitions.
 - `docs/broker-api.md`: broker API guide, including in-memory broker usage, persistent broker usage, WAL-before-queue durability semantics, typed replay, Phase 10 metrics APIs, SPSC limitation, configuration, and current limitations.
 - `docs/cli-guide.md`: Phase 9 CLI app guide, demo flow, and Phase 10 CLI metrics output.
 - `docs/metrics.md`: Phase 10 metrics, snapshots, WAL/recovery counters, and latency histogram guide.
-- `docs/release-checklist.md`: pre-release verification checklist.
+- `docs/release-checklist.md`: pre-release verification checklist, including Phase 13 documentation checks.
 - `docs/low-latency-tuning.md`: Phase 12 tuning notes for batching, zero-copy, spin waiting, CPU affinity, cache lines, and benchmark honesty.
 - `docs/hft-design-notes.md`: Phase 12 HFT-style design/tradeoff notes, including SPSC scope, MPMC non-goal, WAL latency tradeoff, and real-HFT limitations.
 
@@ -236,17 +240,18 @@ CTest currently covers:
 
 ## What does not exist yet
 
-The following future work is not implemented yet:
+The following planned or intentionally omitted work is not implemented yet:
 
 - official measured benchmark-results numbers committed from a controlled run;
-- final portfolio/release documentation and diagrams;
 - networking or a live inter-process broker service;
 - MPSC/MPMC queues;
 - production-ready, HFT-ready, or unsupported latency/performance guarantees.
 
+Phase 13 documentation and portfolio packaging is complete. Diagrams are inline Mermaid blocks in Markdown instead of generated image assets.
+
 ## Next phase
 
-Phase 13 is next: final documentation, portfolio packaging, diagrams, and release notes. Do not create Phase 13 files or assets unless explicitly requested.
+Phase 13 has been implemented. Future work should remain explicitly scoped and must preserve the no-overclaim rules.
 
 ## Phase boundaries
 
@@ -263,4 +268,4 @@ Phase 13 is next: final documentation, portfolio packaging, diagrams, and releas
 - Phase 10 completed: metrics snapshots, relaxed-atomic counters, latency histogram, CLI metrics output, docs, and broker end-to-end benchmark.
 - Phase 11 completed: GitHub Actions CI, sanitizer workflow, clang-tidy static analysis, benchmark smoke workflow, CMake sanitizer options, install/export package rules, contributing guide, changelog, and release checklist.
 - Phase 12 completed: batch broker API, experimental zero-copy SPSC reservation API, spin-wait utilities, Linux-first CPU affinity helpers, Phase 12 benchmarks, low-latency tuning docs, and HFT-style design notes.
-- Phase 13 later: final documentation, portfolio packaging, diagrams, and release notes.
+- Phase 13 completed: final portfolio README, architecture documentation, inline Mermaid diagrams, limitations doc, interview notes, benchmark reporting polish, release checklist updates, and v0.1.0 candidate release notes.

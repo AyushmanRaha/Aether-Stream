@@ -14,7 +14,12 @@ This checklist is for pre-tag verification before v0.1.0 or any later Aether-Str
 
 ## Documentation checks
 
-- Confirm `README.md` reflects the current project phase and limitations.
+- Confirm `README.md` reflects completion through Phase 13 and keeps limitations prominent.
+- Confirm README Mermaid diagrams render on GitHub.
+- Confirm `docs/architecture.md` exists.
+- Confirm `docs/limitations.md` exists.
+- Confirm `docs/interview-notes.md` exists.
+- Confirm `RELEASE_NOTES_v0.1.0.md` exists.
 - Confirm `docs/cli-guide.md` matches the current CLI behavior.
 - Confirm `docs/benchmark-methodology.md` matches the current benchmark workflow.
 - Confirm `docs/performance-results.md` contains only measured numbers backed by raw outputs.

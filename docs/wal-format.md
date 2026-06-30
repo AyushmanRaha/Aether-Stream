@@ -2,11 +2,7 @@
 
 ## Purpose and scope
 
-The Phase 7 write-ahead log (WAL) is an append-only local persistence format for Aether-Stream message records. Phase 8 now uses this WAL through `aether::PersistentBroker<T, Capacity>`, which serializes trivially copyable event objects into WAL payloads before publishing them to the in-memory SPSC queue. Phase 9 adds CLI tools such as `aether_replay` and `aether_inspect_wal` for terminal replay and inspection of this WAL format.
-
-This document remains the binary WAL format specification. Broker-level semantics, typed replay, and user-facing API behavior are documented in `docs/broker-api.md`.
-
-The WAL format itself is still generic `MessageView` payload storage. It does not know about C++ event types; `PersistentBroker` is the typed layer that maps trivially copyable objects to payload bytes.
+The WAL is an append-only local persistence format used by `aether::PersistentBroker<T, Capacity>` and the CLI replay/inspection tools. It stores generic message payload bytes; typed replay is a broker-layer convention for trivially copyable same-program payloads.
 
 ## File model
 
@@ -14,7 +10,7 @@ A WAL file is created at a fixed size and mapped with `aether::io::MmapFile`. Wr
 
 ## Record layout
 
-Each record is a fixed 40-byte header followed immediately by `payload_size` payload bytes. All integer fields are serialized in little-endian byte order. The on-disk header is serialized explicitly; readers and writers do not rely on raw struct `memcpy` for the stable format.
+Each record is a fixed 40-byte header followed by `payload_size` payload bytes. All integer fields are little-endian. Readers and writers serialize fields explicitly rather than relying on raw struct layout.
 
 | Offset | Field | Type | Size | Notes |
 | ---: | --- | --- | ---: | --- |
@@ -30,12 +26,43 @@ Each record is a fixed 40-byte header followed immediately by `payload_size` pay
 
 `record_total_size = 40 + payload_size`.
 
-## Constants
+## Example record layout
 
-- Magic bytes: `AWAL`.
-- Format version: `1`.
-- Header size: `40` bytes.
-- Reserved bytes at offsets 12 through 15 must be zero in serialized output.
+```text
++----------------------+ 40-byte v1 header
+| magic/version/size   |
+| sequence/timestamp   |
+| checksum/flags       |
++----------------------+ payload_size bytes
+| payload bytes        |
++----------------------+
+| next record or       |
+| zero-filled tail     |
++----------------------+
+```
+
+The checksum is a header field, not a trailer. It covers the serialized header with the checksum field set to zero plus the payload bytes.
+
+## WAL append and replay flow
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant PB as PersistentBroker
+    participant W as WalWriter
+    participant Q as SPSC Queue
+    participant R as WalReader / Replay
+
+    P->>PB: try_publish(event)
+    PB->>PB: validate state and queue capacity
+    PB->>W: append header + payload with CRC32
+    W-->>PB: Status::ok or WAL error
+    PB->>Q: publish only after append succeeds
+    R->>W: open WAL file later
+    R->>R: scan records sequentially
+    R->>R: validate magic, version, header, size, checksum
+    R-->>P: visit raw or typed same-platform payloads
+```
 
 ## Checksum policy
 
@@ -45,51 +72,37 @@ Records use standard IEEE CRC32:
 - initial value: `0xFFFFFFFF`;
 - final XOR: `0xFFFFFFFF`.
 
-The checksum is computed over the serialized 40-byte header with the `checksum` field set to zero, followed by the payload bytes. The reader validates the checksum before returning a record. A checksum mismatch returns `StatusCode::corrupted_record`.
+A checksum mismatch returns `StatusCode::corrupted_record`.
 
 ## Reader behavior
 
-The Phase 7 reader performs a sequential scan from the current offset:
+- Zero-filled tail after the last valid record is clean EOF and returns `StatusCode::empty`.
+- Incomplete header or payload at the tail is treated as a clean stop and returns `StatusCode::empty` with detail.
+- Invalid magic, unsupported version, invalid header size, or checksum mismatch returns `StatusCode::corrupted_record`.
+- The reader never reads beyond mapped file bounds.
 
-- a zero-filled tail after the last valid record is clean EOF and returns `StatusCode::empty`;
-- an incomplete header or incomplete payload at the tail is treated as a clean stop and returns `StatusCode::empty` with partial-record detail;
-- invalid magic, unsupported version, or invalid header size returns `StatusCode::corrupted_record`;
-- checksum mismatch returns `StatusCode::corrupted_record`;
-- the reader never reads beyond the mapped file bounds.
+## Persistent broker WAL-before-queue semantics
 
-## Phase 8 broker integration
+`PersistentBroker<T, Capacity>` validates broker state and queue capacity, serializes the trivially copyable event representation, appends the record to the WAL, and publishes to the in-memory SPSC queue only after WAL append succeeds. If WAL append fails, the event is not published to the queue.
 
-`aether::PersistentBroker<T, Capacity>` uses the WAL writer with WAL-before-queue semantics:
+## Typed replay limitations
 
-1. Check broker validity.
-2. Check queue capacity.
-3. Append the serialized object representation of `T` to the WAL.
-4. Publish the value to the in-memory SPSC queue only after WAL append succeeds.
+Typed replay is intentionally narrow:
 
-For typed replay, `PersistentBroker<T, Capacity>::replay(path, visitor)` opens the WAL reader, validates records using the normal WAL reader path, checks that each payload size equals `sizeof(T)`, reconstructs a local `T` with `std::memcpy`, and calls the visitor.
+- same-program/same-platform only;
+- trivially copyable payloads only;
+- no ABI-independent schema;
+- no cross-language schema;
+- no schema evolution.
 
-This typed replay is intended for same-program/same-platform replay of trivially copyable event structs. Cross-language schemas, ABI-independent persistence, endian conversion for typed payloads, and schema evolution are not part of Phase 8.
+## What corruption/recovery means in this project
 
-## Phase 9 CLI inspection and replay
+- Zero-filled tail = clean EOF.
+- Incomplete tail = clean stop.
+- Invalid magic/version/header/checksum = corrupted record.
+- There is no repair or truncation tooling.
+- There is no production crash-recovery guarantee beyond explicit append/flush behavior.
 
-Phase 9 provides terminal tools for working with WAL files:
+## CLI inspection and replay
 
-- `aether_replay` performs generic raw WAL replay and prints record summaries with safe payload previews.
-- `aether_inspect_wal` scans WAL files and prints format constants, record counts, offsets, sequence ranges, payload totals, and optional per-record details.
-
-These tools inspect and replay the existing WAL format. They do not repair corrupted files, rotate WAL segments, or provide production recovery automation.
-
-## Limitations
-
-Phase 8 broker integration exists through `PersistentBroker`, but the lower-level WAL reader/writer remain standalone and reusable.
-
-The WAL layer still intentionally does not include:
-
-- file rotation;
-- multi-segment WAL files;
-- concurrent writer support;
-- recovery indexes;
-- WAL repair/truncation tooling;
-- schema evolution for typed broker payloads;
-- cross-language or ABI-independent typed payload encoding;
-- production crash-recovery guarantees beyond the existing explicit flush behavior.
+`aether_replay` prints generic raw WAL summaries. `aether_inspect_wal` scans format/count/offset information. These tools do not repair corrupted files or rotate WAL segments.

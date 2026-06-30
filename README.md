@@ -1,308 +1,229 @@
+<div align="center">
+
 # Aether-Stream
 
-[![CI](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/ci.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/ci.yml)
-[![Sanitizers](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml)
-[![Benchmark smoke](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml/badge.svg)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml)
+### C++20 ultra-low-latency lock-free message broker toolkit
 
-Aether-Stream is a C++20 ultra-low-latency lock-free asynchronous message broker library under development. The repository now includes the reusable library foundation, message representation, SPSC queue primitive, mmap primitive, write-ahead log foundation, developer-facing in-memory broker API, WAL-backed persistent broker API, Phase 9 terminal CLI demo toolkit, Phase 10 metrics/diagnostics, Phase 11 CI/quality/package verification, and Phase 12 advanced low-latency APIs: a batch-oriented in-memory broker API, an experimental zero-copy SPSC queue, spin-wait utilities, a Linux-first CPU affinity helper with macOS no-op fallback, low-latency benchmark executables, and low-latency/HFT design notes.
+Aether-Stream is a C++20 systems project that demonstrates a local lock-free SPSC queue, in-memory and WAL-backed broker APIs, mmap-backed write-ahead logging, metrics, CLI demos, Google Benchmark coverage, CI quality gates, and low-latency design tradeoffs while keeping its limitations explicit and measurable.
 
-## Current status
+<br/>
 
-The repository is complete through Phase 12 of the phase-wise plan. It currently includes a real CMake build system, core public API types, status/error handling, a lightweight expected-like wrapper, configuration structs, a message model, an SPSC ring buffer, broker APIs, examples, CTest coverage, utility helpers, local scripts, a manual SPSC stress tool, Google Benchmark wiring, SPSC benchmark executables, benchmark reporting docs, a POSIX memory-mapped file abstraction, append-only WAL writer/reader support, typed replay for trivially copyable persistent broker events, Phase 9 CLI demo apps, Phase 10 metrics/diagnostics, Phase 11 CI/quality/package verification, and Phase 12 advanced low-latency APIs: a batch-oriented in-memory broker API, an experimental zero-copy SPSC queue, spin-wait utilities, a Linux-first CPU affinity helper with macOS no-op fallback, low-latency benchmark executables, and low-latency/HFT design notes.
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C?style=for-the-badge&logo=cplusplus)](CMakeLists.txt)
+[![CMake](https://img.shields.io/badge/CMake-build-064F8C?style=for-the-badge&logo=cmake)](CMakeLists.txt)
+[![Ninja](https://img.shields.io/badge/Ninja-compatible-2B2D42?style=for-the-badge)](scripts/run_tests.sh)
+[![Lock-free SPSC](https://img.shields.io/badge/Lock--free-SPSC-7B2CBF?style=for-the-badge)](docs/ring-buffer-design.md)
+[![WAL](https://img.shields.io/badge/WAL-persistence-0F766E?style=for-the-badge)](docs/wal-format.md)
+[![mmap](https://img.shields.io/badge/mmap-RAII-334155?style=for-the-badge)](docs/mmap-notes.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/AyushmanRaha/Aether-Stream/ci.yml?branch=main&label=CI&style=for-the-badge)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/ci.yml)
+[![Sanitizers](https://img.shields.io/github/actions/workflow/status/AyushmanRaha/Aether-Stream/sanitizer.yml?branch=main&label=Sanitizers&style=for-the-badge)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/sanitizer.yml)
+[![Benchmarks](https://img.shields.io/github/actions/workflow/status/AyushmanRaha/Aether-Stream/benchmark-smoke.yml?branch=main&label=Benchmark%20smoke&style=for-the-badge)](https://github.com/AyushmanRaha/Aether-Stream/actions/workflows/benchmark-smoke.yml)
+[![License MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-It is not production-ready. CI, sanitizer, static-analysis, benchmark-smoke, and CMake package-install verification are now configured, but production-ready performance claims are not available. No official measured benchmark results have been committed yet.
+<br/>
 
-## What exists today
+**Local C++ library and CLI toolkit. No networking claims. No fake HFT claims. No unsupported benchmark numbers.**
 
-### Build system
+<p align="center">
+  <a href="#what-aether-stream-does"><strong>Overview</strong></a> ·
+  <a href="#quick-start"><strong>Quick Start</strong></a> ·
+  <a href="#architecture-at-a-glance"><strong>Architecture</strong></a> ·
+  <a href="#benchmarks-and-performance-reporting"><strong>Benchmarks</strong></a> ·
+  <a href="#docs-and-deep-dives"><strong>Docs</strong></a>
+</p>
 
-- Top-level CMake project using C++20.
-- Library target: `aether_stream`.
-- Public alias target for consumers: `aether::stream`.
-- Options for enabling tests, examples, tools, CLI apps, warnings, warnings-as-errors, benchmark builds, sanitizers, clang-tidy, and install/export package rules.
-- Google Benchmark is wired only when `AETHER_BUILD_BENCHMARKS=ON`.
+</div>
 
-### Core API
+---
 
-- Public version API in `include/aether/version.hpp`, implemented in `src/version.cpp`.
-- Core type aliases, constants, and a power-of-two helper in `include/aether/core/types.hpp`.
-- Status codes, status names/messages, and the `Status` type in `include/aether/core/status.hpp` and `src/core/status.cpp`.
-- Lightweight C++20 `Expected<T>` and `Expected<void>` wrapper in `include/aether/core/expected.hpp`.
-- Queue, WAL, and broker configuration structs with validation helpers in `include/aether/core/config.hpp`.
+## Table of Contents
 
-### Message model
+- [What Aether-Stream does](#what-aether-stream-does)
+- [Why it is technically strong](#why-it-is-technically-strong)
+- [What I built vs what it intentionally does not do](#what-i-built-vs-what-it-intentionally-does-not-do)
+- [Architecture at a glance](#architecture-at-a-glance)
+- [Core feature tour](#core-feature-tour)
+- [Quick Start](#quick-start)
+- [Choose your setup path](#choose-your-setup-path)
+- [Build, test, and verification matrix](#build-test-and-verification-matrix)
+- [CLI demo flow](#cli-demo-flow)
+- [Benchmarks and performance reporting](#benchmarks-and-performance-reporting)
+- [Docs and deep dives](#docs-and-deep-dives)
+- [Testing and CI](#testing-and-ci)
+- [Limitations and honesty notes](#limitations-and-honesty-notes)
+- [Project structure](#project-structure)
+- [Interview-ready explanation](#interview-ready-explanation)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
-- `MessageHeader`, `MessageView`, and `PayloadView` in `include/aether/message.hpp`.
-- Helpers for checking payload size, constructing a non-owning message view, and validating that a view's header matches its payload span.
+## What Aether-Stream does
 
-### SPSC queue
+Aether-Stream is a local C++20 library and CLI toolkit for exploring low-latency messaging building blocks. It includes a lock-free `SpscRingBuffer<T, Capacity>` for exactly one producer and one consumer, broker wrappers over the queue, a persistent broker that appends to an mmap-backed WAL before queue publication, demo CLI apps for publishing/replay/inspection, metrics snapshots and latency histograms, reproducible benchmark tooling, and CI quality automation.
 
-- `SpscRingBuffer<T, Capacity>` in `include/aether/spsc_ring_buffer.hpp`.
-- The queue design supports exactly one producer thread and exactly one consumer thread. Multiple producers or multiple consumers are not supported.
-- Capacity is a compile-time power-of-two template argument with a minimum value of 2.
-- Available operations include `try_push`, `try_emplace`, `try_pop`, `empty`, `full`, `capacity`, and approximate size reporting through `size_approx`.
-- The implementation uses acquire/release atomics for producer/consumer publication and cache-line padding for head and tail counters.
-- Move-only payload behavior is tested, including `std::unique_ptr<int>` and a custom move-only object.
+It is complete through Phase 13: the implementation remains Phase 0-12 runtime functionality, while Phase 13 adds portfolio documentation, Mermaid diagrams, release notes, limitations, and interview-readiness polish.
 
-### Broker API
+## Why it is technically strong
 
-- In-memory broker API in `include/aether/broker.hpp`.
-- WAL-backed persistent broker API in `include/aether/persistent_broker.hpp`.
-- `Broker<T, Capacity>` exposes `try_publish`, `try_emplace`, and `try_consume` over the SPSC queue.
-- `PersistentBroker<T, Capacity>` uses WAL-before-queue publishing: a successful publish appends to the WAL before the value becomes visible to the consumer.
-- Typed replay reconstructs trivially copyable event values from WAL records for same-program/same-platform replay.
-- Broker API documentation is in `docs/broker-api.md`.
+| Capability | Production-oriented behavior |
+|---|---|
+| Lock-free SPSC queue | Uses acquire/release publication, cache-line padding, raw slot lifetime management, and stress tests. |
+| WAL-backed persistent broker | Appends to WAL before queue publication for typed same-platform replay. |
+| mmap file abstraction | Isolates POSIX file mapping behind RAII. |
+| Metrics and diagnostics | Local counters, snapshots, latency histograms, CLI metrics summaries. |
+| Benchmark discipline | Release benchmark runner captures environment and raw outputs. |
+| CI and quality gates | CI, sanitizers, clang-tidy, format checks, benchmark smoke, package install smoke. |
+| Low-latency exploration | Batch APIs, experimental zero-copy SPSC, spin waits, Linux-first CPU affinity helper. |
 
+## What I built vs what it intentionally does not do
 
-### Advanced low-latency APIs
+| Area | Built in this project | Intentionally not claimed |
+|---|---|---|
+| Queue | Lock-free SPSC ring buffer and experimental zero-copy SPSC API. | MPSC/MPMC queues or blocking wait primitives. |
+| Broker | In-memory `Broker`, `BatchBroker`, and `PersistentBroker` wrappers. | Distributed broker semantics or live inter-process subscriptions. |
+| WAL | Fixed-size mmap-backed append/read/replay with CRC32 validation. | WAL rotation, repair tooling, schema evolution, or production crash recovery. |
+| CLI | `aether_bench`, `aether_pub`, `aether_sub`, `aether_replay`, `aether_inspect_wal`. | Network clients, daemons, auth, TLS, or service discovery. |
+| Benchmarks | Google Benchmark executables and canonical raw-output runner. | Official numbers without committed raw outputs. |
+| CI | Format, build, CTest, sanitizer, clang-tidy, benchmark smoke, package smoke workflows. | Proof of production readiness. |
+| Production messaging | Clear local building blocks and honest limitations. | Production broker, IPC service, or HA/distributed guarantees. |
+| HFT claims | HFT-style design notes and low-latency comparison APIs. | HFT-ready claims or latency guarantees. |
 
-- Batch-oriented in-memory broker API: `BatchBroker<T, Capacity>` in `include/aether/batch_broker.hpp`.
-- Experimental zero-copy SPSC queue: `ZeroCopySpsc<T, Capacity>` in `include/aether/zero_copy_spsc.hpp`, with reservation, construction, commit, and cancellation semantics.
-- Spin-wait helpers: `aether::utils::SpinWait` and `aether::utils::cpu_relax()` in `include/aether/utils/spin_wait.hpp`.
-- CPU affinity helpers: `aether::utils::CpuAffinityInfo`, `cpu_affinity_info()`, `cpu_affinity_supported()`, `pin_current_thread_to_cpu()`, and `clear_current_thread_affinity()` in `include/aether/utils/cpu_affinity.hpp`.
-- CPU affinity support is Linux-first. macOS and unsupported platforms use safe no-op fallback behavior for affinity operations.
+## Architecture at a glance
 
-### Memory-mapped files
+```mermaid
+flowchart LR
+    User["Developer / CLI user"] --> Apps["CLI apps<br/>aether_bench / pub / sub / replay / inspect_wal"]
+    User --> Examples["Examples<br/>basic_spsc / broker_basic / persistent_broker"]
+    Apps --> Broker["Broker APIs<br/>Broker / BatchBroker / PersistentBroker"]
+    Examples --> Broker
+    Broker --> Queue["SPSC queue<br/>SpscRingBuffer / ZeroCopySpsc"]
+    Broker --> Metrics["Metrics<br/>counters / snapshots / latency histogram"]
+    Broker --> WAL["WAL layer<br/>writer / reader / replay"]
+    WAL --> Mmap["mmap file layer<br/>MmapFile"]
+    Queue --> Core["Core types<br/>Status / Expected / Config / MessageView"]
+    WAL --> Core
+    Metrics --> Core
+    Bench["Google Benchmark suite"] --> Queue
+    Bench --> Broker
+    CI["GitHub Actions<br/>CI / sanitizers / benchmark smoke"] --> Build["CMake build<br/>tests / examples / apps / package install"]
+```
 
-- Public RAII mmap wrapper in `include/aether/io/mmap_file.hpp`, implemented in `src/io/mmap_file.cpp`.
-- POSIX `mmap` resource handling is isolated behind `aether::io::MmapFile`.
-- Supported operations include create, open existing, flush, resize, close, byte-span access, and move-only ownership transfer.
-- Persistence behavior is covered by a standalone CTest test.
-- `examples/mmap_smoke.cpp` demonstrates creating, flushing, closing, and reopening a mapped file.
+```mermaid
+flowchart LR
+    Producer["Producer thread<br/>owns head_"] --> CheckSpace["Acquire-load tail_<br/>check free space"]
+    CheckSpace --> Construct["Construct payload in<br/>buffer[head & mask]"]
+    Construct --> PublishHead["Release-store head_ + 1"]
+    PublishHead --> ConsumerAcquire["Consumer acquire-loads head_"]
+    ConsumerAcquire --> Consume["Move payload out<br/>destroy slot"]
+    Consume --> PublishTail["Release-store tail_ + 1"]
+    PublishTail --> ProducerReuse["Producer acquire-loads tail_<br/>slot reusable"]
+```
 
-### WAL persistence
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant PB as PersistentBroker
+    participant W as WalWriter
+    participant Q as SPSC Queue
+    participant C as Consumer
+    participant R as WalReader / Replay
 
-- Stable Phase 7 record format in `include/aether/wal/record.hpp` with explicit 40-byte little-endian serialization.
-- CRC32 checksum helpers in `include/aether/wal/checksum.hpp` and `src/wal/checksum.cpp`.
-- Append-only WAL writer in `include/aether/wal/wal_writer.hpp` and `src/wal/wal_writer.cpp`.
-- Sequential WAL reader and replay helper in `include/aether/wal/wal_reader.hpp` and `src/wal/wal_reader.cpp`.
-- WAL format documentation in `docs/wal-format.md`.
-- `examples/wal_replay.cpp` demonstrates writing three records and replaying them.
-- WAL tests cover record serialization, checksum behavior, writer appends, reader replay, zero-filled tails, partial records, and checksum corruption detection.
+    P->>PB: try_publish(event)
+    PB->>PB: validate broker and queue capacity
+    PB->>W: append serialized event record
+    W-->>PB: Status::ok or WAL error
+    PB->>Q: publish only after WAL append succeeds
+    Q-->>C: consume event in process
+    R->>W: open WAL file later
+    R->>R: validate magic, version, size, checksum
+    R-->>P: replay typed records for same-program payloads
+```
 
-### Utilities
+## Core feature tour
 
-- Cache-line padding utility in `include/aether/detail/cache_line.hpp`.
-- Platform/compiler/architecture detection and force-inline macro in `include/aether/detail/platform.hpp`.
-- Monotonic nanosecond clock and stopwatch helper in `include/aether/utils/clock.hpp`.
-- Thread yield, CPU relax, spin-wait, and current-thread naming helpers in `include/aether/utils/thread_utils.hpp`.
-- Phase 12 spin-wait helpers in `include/aether/utils/spin_wait.hpp`.
-- Phase 12 CPU affinity helpers in `include/aether/utils/cpu_affinity.hpp`.
+### Lock-free SPSC queue
 
-### Examples
+`SpscRingBuffer<T, Capacity>` is a header-only queue for exactly one producer and one consumer. It uses monotonic logical counters, power-of-two slot masking, acquire/release publication, cache-line separation, and raw storage lifetime management.
 
-- `examples/smoke.cpp` links against `aether::stream` and prints the library version.
-- `examples/basic_spsc.cpp` demonstrates integer queue usage and queueing `MessageHeader` values.
-- `examples/broker_basic.cpp` demonstrates the in-memory broker API.
-- `examples/persistent_broker.cpp` demonstrates WAL-backed publish, consume, flush, and typed replay.
-- `examples/mmap_smoke.cpp` demonstrates a small mapped-file create/write/flush/close/reopen flow.
-- `examples/wal_replay.cpp` demonstrates WAL append and sequential replay.
+### Broker APIs
+
+`Broker<T, Capacity>` provides a local publish/consume wrapper over the queue. `BatchBroker<T, Capacity>` adds Phase 12 batch-oriented publish/consume APIs. `PersistentBroker<T, Capacity>` composes the queue with the WAL writer and reader.
+
+### WAL persistence and replay
+
+The WAL layer stores records with a 40-byte little-endian v1 header, payload bytes, and CRC32 validation. Persistent broker publishing uses WAL-before-queue semantics: a value is published to the in-process queue only after the WAL append succeeds.
 
 ### CLI toolkit
 
-- Phase 9 CLI apps build when `AETHER_BUILD_APPS=ON` and now print Phase 10 metrics summaries.
-- `aether_bench` runs a simple two-thread local broker demo benchmark without Google Benchmark.
-- `aether_pub` writes generated `OrderEvent` records to a local WAL-backed persistent broker.
-- `aether_sub` runs a local in-process subscriber demo or replays typed `OrderEvent` WAL records. It is not a network subscriber.
-- `aether_replay` prints generic raw WAL record summaries and safe payload previews.
-- `aether_inspect_wal` scans WAL files and prints format/count/offset summaries.
-- Full usage is documented in `docs/cli-guide.md`; metrics are documented in `docs/metrics.md`.
+The CLI apps demonstrate local benchmark-style broker flow, WAL publishing, typed replay, raw replay, and WAL inspection. `aether_sub` is a local subscriber/replay demo, not a network subscriber.
 
-### Tests
+### Metrics and diagnostics
 
-CTest registers standalone test executables for:
+Broker metrics use relaxed-atomic counters and snapshots. The latency histogram supports diagnostic and benchmark summaries without introducing an external observability dependency.
 
-- version constants and `version_string()`;
-- status/error handling and expected-like results;
-- message header/view construction and validation;
-- basic SPSC behavior, full/empty behavior, FIFO order, and `MessageHeader` transfer;
-- SPSC wraparound and rolling push/pop behavior;
-- concurrent SPSC transfer of ordered sequence numbers between one producer and one consumer;
-- move-only payload support, including move-only object behavior;
-- stress coverage that checks multiple queue capacities and preserves order;
-- in-memory broker publish/consume, full/empty handling, order, emplacement, move-only support, and runtime config validation;
-- persistent broker open/config validation, WAL-before-queue behavior, WAL record readability, full-queue no-append behavior, and typed replay;
-- metrics counters, snapshots, reset behavior, WAL/recovery counter increments, and `tests/test_counters.cpp` registered as `aether.metrics.counters`;
-- latency histogram empty/single/multiple-sample statistics, nearest-rank percentiles, clamping, clear, reserve behavior, and `tests/test_latency_histogram.cpp` registered as `aether.metrics.latency_histogram`;
-- mmap file create/write/flush/close/reopen behavior, resize behavior, move ownership, and destructor-flush coverage;
-- WAL record format, writer behavior, reader replay, partial-record handling, zero-filled tails, and corruption detection;
-- CLI argument parsing, defaults, help flags, valid values, and invalid argument handling through `tests/test_cli_args.cpp` (`aether.cli.args`).
-- batch broker batch ordering, partial batch behavior, empty/full edge cases, and invalid config behavior through `tests/test_batch_broker.cpp` (`aether.batch_broker`).
-- zero-copy SPSC reservation, commit, cancel, destructor cancellation, active reservation guard, FIFO, full behavior, wraparound, and move-only payload support through `tests/test_zero_copy_spsc.cpp` (`aether.zero_copy_spsc`).
+### Benchmark suite
 
-### Benchmarks
+Benchmark targets cover SPSC throughput, SPSC latency, payload-size comparison, broker end-to-end flow, batch publishing, zero-copy SPSC, and spin-wait primitives. Reported numbers must come from preserved raw outputs.
 
-- Google Benchmark-based SPSC and broker end-to-end benchmarks build when `AETHER_BUILD_BENCHMARKS=ON`. These are separate from the Phase 10 `aether_bench` CLI demo benchmark, which is a terminal demonstration rather than part of the Google Benchmark suite.
-- `bench_spsc_throughput` measures ordered producer/consumer throughput across queue capacities.
-- `bench_spsc_latency` records approximate timestamped per-message transfer latency distributions.
-- `bench_payload_sizes` compares throughput across 8B, 32B, 64B, 256B, and 1024B payload objects.
-- `bench_broker_end_to_end` measures a local publish-to-consume path with WAL disabled and enabled, without making official performance claims.
-- `bench_batch_publish` compares single-message broker publish/consume patterns with batch broker publish/consume patterns.
-- `bench_zero_copy_spsc` compares normal SPSC insertion with zero-copy reserve/construct/commit insertion.
-- `bench_spin_wait` compares `cpu_relax`, `std::this_thread::yield`, and `SpinWait`/backoff overhead.
-- Phase 12 benchmarks are comparison, smoke, and development benchmarks only; they are not official HFT claims.
-- `docs/benchmark-methodology.md` explains how results should be produced and interpreted.
-- `docs/performance-results.md` is a template for measured results and currently contains no fabricated numbers.
-- `docs/low-latency-tuning.md` documents Phase 12 batching, zero-copy, spin-wait, CPU-affinity, cache-line, and benchmark-honesty notes.
-- `docs/hft-design-notes.md` documents Phase 12 HFT-style design tradeoffs and explicit limitations.
+### Advanced low-latency APIs
 
-### Quality automation
+Phase 12 added `BatchBroker`, experimental `ZeroCopySpsc`, `SpinWait`, `cpu_relax`, and Linux-first CPU affinity helpers. These are comparison and exploration APIs, not HFT-readiness claims.
 
-- GitHub Actions workflows run format checks, Ubuntu/macOS Debug and Release builds, CTest, clang-tidy, sanitizer builds, benchmark smoke checks, and package install smoke checks.
-- Sanitizer flags are centralized in `cmake/AetherSanitizers.cmake` and are enabled only through explicit CMake options.
-- Install/export package rules are centralized in `cmake/AetherInstall.cmake` and export the consumer target as `aether::stream`.
-- A moderate `.clang-tidy` configuration is available for opt-in local and CI static analysis.
+### CI and packaging
 
-### Scripts/tooling
+CMake install/export rules expose `aether::stream`. GitHub Actions cover CI, sanitizers, clang-tidy, benchmark smoke, and package install smoke verification.
 
-- `scripts/run_tests.sh` configures, builds, and runs the local test suite.
-- `scripts/format_all.sh` formats or checks C/C++ files in the repository source directories.
-- `scripts/bootstrap_macos.sh` checks for common macOS development tools and creates local build directories.
-- `scripts/run_benchmarks.sh` configures a Release benchmark build, runs CTest, and stores raw benchmark output under `benchmark-results/`; it runs all seven benchmark executables, including the Phase 12 benchmark executables.
-- `tools/stress_spsc.cpp` provides a manual SPSC stress executable when tools are enabled.
-
-## What does not exist yet
-
-Planned future work that is not currently implemented includes:
-
-- final Phase 13 documentation and portfolio packaging;
-- official measured benchmark results from controlled runs;
-- networking or a live inter-process broker service;
-- MPSC/MPMC queues;
-- production-ready or HFT-ready guarantees.
-
-
-## Metrics and diagnostics
-
-Phase 10 adds lightweight observability without changing broker semantics:
-
-- always-on relaxed-atomic broker counters;
-- `metrics_snapshot()`, `snapshot()`, and `reset_metrics()` on broker APIs;
-- diagnostic `LatencyHistogram` for tests, tools, and benchmarks;
-- an end-to-end broker benchmark covering in-memory and WAL-backed paths;
-- concise metrics summaries in CLI output.
-
-See [`docs/metrics.md`](docs/metrics.md) for field semantics, WAL/recovery metrics, and histogram percentile behavior.
-
-## Build and test
-
-Configure, build, and run the registered CTest suite with tests, examples, and tools enabled:
+## Quick Start
 
 ```sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON -DAETHER_BUILD_APPS=ON
+git clone https://github.com/AyushmanRaha/Aether-Stream.git
+cd Aether-Stream
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+  -DAETHER_BUILD_TESTS=ON \
+  -DAETHER_BUILD_EXAMPLES=ON \
+  -DAETHER_BUILD_TOOLS=ON \
+  -DAETHER_BUILD_APPS=ON
 cmake --build build/debug
 ctest --test-dir build/debug --output-on-failure
-```
-
-Run the smoke example:
-
-```sh
 ./build/debug/examples/smoke
 ```
 
-Expected output:
+Expected smoke output:
 
 ```text
 Aether-Stream 0.1.0
 ```
 
-Run the basic SPSC example:
+## Choose your setup path
+
+| Goal | Command path | Notes |
+|---|---|---|
+| Build and run tests | Configure Debug with `AETHER_BUILD_TESTS=ON`, build, then run CTest. | Fastest correctness path. |
+| Run examples | Add `-DAETHER_BUILD_EXAMPLES=ON`, then run binaries in `build/debug/examples/`. | Includes SPSC, mmap, WAL, and broker examples. |
+| Run CLI demos | Add `-DAETHER_BUILD_APPS=ON`, then run binaries in `build/*/apps/`. | Local demos only; no network service. |
+| Run benchmarks | Run `./scripts/run_benchmarks.sh`. | Canonical Release workflow with raw outputs. |
+| Run sanitizer build | Configure `build/asan` or `build/tsan` with sanitizer options. | TSAN should be separate from ASAN/UBSAN. |
+| Verify package install | Configure Release with `-DAETHER_ENABLE_INSTALL=ON`, build, test, install. | Validates exported `aether::stream`. |
+
+## Build, test, and verification matrix
+
+| Check | Command |
+|---|---|
+| Format | `./scripts/format_all.sh --check` |
+| Debug tests | `cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_EXAMPLES=ON -DAETHER_BUILD_TOOLS=ON -DAETHER_BUILD_APPS=ON && cmake --build build/debug && ctest --test-dir build/debug --output-on-failure` |
+| ASAN/UBSAN | `cmake -S . -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_ASAN=ON -DAETHER_ENABLE_UBSAN=ON && cmake --build build/asan && ctest --test-dir build/asan --output-on-failure` |
+| TSAN | `cmake -S . -B build/tsan -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_TSAN=ON && cmake --build build/tsan && ctest --test-dir build/tsan --output-on-failure` |
+| Package install | `cmake -S . -B build/package -G Ninja -DCMAKE_BUILD_TYPE=Release -DAETHER_BUILD_TESTS=ON -DAETHER_ENABLE_INSTALL=ON && cmake --build build/package && ctest --test-dir build/package --output-on-failure && cmake --install build/package --prefix install/aether` |
+
+## CLI demo flow
 
 ```sh
-./build/debug/examples/basic_spsc
-```
-
-Run the broker examples:
-
-```sh
-./build/debug/examples/broker_basic
-./build/debug/examples/persistent_broker
-```
-
-Run the mmap smoke example:
-
-```sh
-./build/debug/examples/mmap_smoke
-```
-
-Run the WAL replay example:
-
-```sh
-./build/debug/examples/wal_replay
-```
-
-Run only broker-related CTest coverage:
-
-```sh
-ctest --test-dir build/debug --output-on-failure -R broker
-```
-
-Run only WAL-related CTest coverage:
-
-```sh
-ctest --test-dir build/debug --output-on-failure -R wal
-```
-
-Run only mmap-related CTest coverage:
-
-```sh
-ctest --test-dir build/debug --output-on-failure -R mmap
-```
-
-Run only Phase 12 low-latency CTest coverage:
-
-```sh
-ctest --test-dir build/debug --output-on-failure -R "batch_broker|zero_copy"
-```
-
-You can also use the local test shortcut:
-
-```sh
-./scripts/run_tests.sh
-```
-
-## Quality checks
-
-Check formatting locally with:
-
-```sh
-./scripts/format_all.sh --check
-```
-
-Configure an ASAN/UBSAN build with:
-
-```sh
-cmake -S . -B build/asan -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DAETHER_BUILD_TESTS=ON \
-  -DAETHER_ENABLE_ASAN=ON \
-  -DAETHER_ENABLE_UBSAN=ON
-```
+  -DAETHER_BUILD_EXAMPLES=ON \
+  -DAETHER_BUILD_TOOLS=ON \
+  -DAETHER_BUILD_APPS=ON
+cmake --build build/release
 
-Configure a TSAN build separately with:
-
-```sh
-cmake -S . -B build/tsan -G Ninja -DCMAKE_BUILD_TYPE=Debug \
-  -DAETHER_BUILD_TESTS=ON \
-  -DAETHER_ENABLE_TSAN=ON
-```
-
-For package install smoke checks, configure with `-DAETHER_ENABLE_INSTALL=ON`, run `cmake --install`, then verify a temporary consumer project can call `find_package(AetherStream CONFIG REQUIRED)` and link `aether::stream`. See [Contributing](CONTRIBUTING.md) and the [release checklist](docs/release-checklist.md) for the full command sequence.
-
-## CLI demo apps
-
-Build with `-DAETHER_BUILD_APPS=ON`, then inspect help for each app:
-
-```sh
-./build/release/apps/aether_bench --help
-./build/release/apps/aether_pub --help
-./build/release/apps/aether_sub --help
-./build/release/apps/aether_replay --help
-./build/release/apps/aether_inspect_wal --help
-```
-
-Quick demo flow:
-
-```sh
 ./build/release/apps/aether_bench --messages 100000 --payload-size 64 --capacity 1024
 ./build/release/apps/aether_pub --wal data/sample.wal --messages 1000
 ./build/release/apps/aether_inspect_wal --wal data/sample.wal
@@ -310,88 +231,91 @@ Quick demo flow:
 ./build/release/apps/aether_sub --wal data/sample.wal --limit 10
 ```
 
-These are local terminal demos only. They do not add networking, a live inter-process broker, production persistence, or official benchmark claims.
+## Benchmarks and performance reporting
 
-## Benchmarks
-
-Build benchmark targets manually with:
-
-```sh
-cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release -DAETHER_BUILD_TESTS=ON -DAETHER_BUILD_BENCHMARKS=ON
-cmake --build build/release
-./build/release/benchmarks/bench_batch_publish --benchmark_min_time=0.1s
-./build/release/benchmarks/bench_zero_copy_spsc --benchmark_min_time=0.1s
-./build/release/benchmarks/bench_spin_wait --benchmark_min_time=0.1s
-```
-
-Run the reproducible benchmark workflow, including a Release configure/build and CTest pre-check, with:
+Run the canonical workflow from the repository root:
 
 ```sh
 ./scripts/run_benchmarks.sh
 ```
 
-Raw benchmark outputs are written under `benchmark-results/`. See [Benchmark methodology](docs/benchmark-methodology.md) and [Performance results](docs/performance-results.md). No performance numbers should be reported unless they come from a measured run with raw outputs.
-
-## Manual stress tool
-
-The manual SPSC stress tool is built when `AETHER_BUILD_TOOLS=ON` is passed to CMake:
+For shorter exploratory runs:
 
 ```sh
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DAETHER_BUILD_TOOLS=ON
-cmake --build build/debug --target aether_stress_spsc
-./build/debug/tools/stress_spsc --messages 1000000 --capacity 1024
+./scripts/run_benchmarks.sh --benchmark_min_time=0.5s
 ```
 
-Supported capacities are `64`, `256`, `1024`, `4096`, and `65536`. The tool transfers ordered integer values between one producer and one consumer, then reports elapsed time, retry counts, and validation status for that run. Its output is for manual stress validation only and is not a benchmark result.
+Raw `.txt`, `.json`, and `environment.txt` outputs are written under `benchmark-results/YYYYMMDD-HHMMSS/`. Official benchmark tables must only be populated from those raw outputs. If no raw measured output is committed, benchmark tables stay marked “not yet published”; this repository does not invent throughput, latency, p99, p999, or hardware claims.
 
-## Formatting
+## Docs and deep dives
 
-Format C++ source files in known source directories with:
+| Document | Purpose |
+|---|---|
+| [Architecture](docs/architecture.md) | Layered system explanation and data flow. |
+| [Ring buffer design](docs/ring-buffer-design.md) | SPSC algorithm, slot lifecycle, limitations, interview explanation. |
+| [Memory ordering](docs/memory-ordering.md) | Acquire/release protocol and SPSC-only reasoning. |
+| [WAL format](docs/wal-format.md) | 40-byte v1 record layout, checksum, replay, corruption semantics. |
+| [Broker API](docs/broker-api.md) | In-memory and persistent broker usage. |
+| [CLI guide](docs/cli-guide.md) | CLI app usage and demo flow. |
+| [Metrics](docs/metrics.md) | Counters, snapshots, latency histogram. |
+| [Benchmark methodology](docs/benchmark-methodology.md) | Canonical benchmark workflow and reporting rules. |
+| [Performance results](docs/performance-results.md) | Publication template for measured results. |
+| [Low-latency tuning](docs/low-latency-tuning.md) | Batch, zero-copy, spin-wait, affinity tradeoffs. |
+| [HFT design notes](docs/hft-design-notes.md) | Honest HFT-style design discussion and limitations. |
+| [Limitations](docs/limitations.md) | Current non-goals and production gaps. |
+| [Interview notes](docs/interview-notes.md) | 30-second to deep-dive explanations and Q&A. |
+| [Release checklist](docs/release-checklist.md) | Pre-tag verification checklist. |
 
-```sh
-./scripts/format_all.sh
+## Testing and CI
+
+CTest covers version/status/message behavior, SPSC basic/wraparound/concurrent/move-only/stress cases, mmap behavior, WAL record/writer/reader behavior, broker and persistent broker behavior, CLI argument parsing, metrics counters, latency histograms, batch broker behavior, and zero-copy SPSC behavior. WAL tests include partial-record, zero-filled tail, and corruption detection paths.
+
+GitHub Actions provide CI builds, sanitizer workflow, benchmark-smoke workflow, clang-tidy integration, format checks, and package install smoke checks. These checks improve confidence, but they do not turn the project into a production broker.
+
+## Limitations and honesty notes
+
+- No networking, IPC broker service, or live cross-process subscriptions.
+- No MPSC or MPMC queue; SPSC means exactly one producer and exactly one consumer.
+- No production-ready or HFT-ready guarantee.
+- No official performance numbers unless raw `./scripts/run_benchmarks.sh` outputs are committed and linked.
+- Persistent typed replay is same-program/same-platform for trivially copyable payload types.
+- macOS/laptop numbers are development measurements; final low-latency claims require controlled Linux benchmarking.
+- The manual SPSC stress tool is for correctness validation, not benchmark reporting.
+
+## Project structure
+
+```text
+Aether-Stream/
+├── include/aether/          Public C++20 headers
+├── src/                     Library implementation files
+├── apps/                    CLI demo applications
+├── examples/                Small usage examples
+├── tests/                   Standalone CTest executables
+├── benchmarks/              Google Benchmark executables
+├── tools/                   Manual stress-validation tools
+├── scripts/                 Format, test, and benchmark runners
+├── cmake/                   CMake options, dependencies, install, sanitizers
+├── docs/                    Architecture, design, benchmark, limitation docs
+├── .github/workflows/       CI, sanitizer, benchmark-smoke workflows
+├── README.md                Portfolio front page with inline Mermaid diagrams
+├── CHANGELOG.md             Unreleased change tracking
+└── RELEASE_NOTES_v0.1.0.md  v0.1.0 candidate release notes
 ```
 
-Check formatting without modifying files with:
+## Interview-ready explanation
 
-```sh
-./scripts/format_all.sh --check
-```
+Aether-Stream is credible as a systems project because it connects low-level C++ mechanics to observable product-like tooling: lock-free SPSC memory ordering, raw object lifetime, cache-line avoidance, mmap RAII, WAL record validation, broker-level composition, metrics, CLI demos, benchmarks, and CI. The key tradeoff is scope discipline: the project demonstrates a carefully bounded local messaging stack instead of pretending to be a production distributed broker.
 
-## Development roadmap
+See [docs/interview-notes.md](docs/interview-notes.md) for pitch lengths, deep-dive outline, and likely interviewer Q&A.
 
-Phase 12 is complete. Planned future work is Phase 13 final documentation, portfolio packaging, diagrams, release notes, and final presentation polish. Do not treat the existing Phase 12 APIs or benchmarks as production-ready or HFT-ready guarantees.
+## Contributing
 
-## Local setup
-
-For macOS development checks, run:
-
-```sh
-chmod +x scripts/bootstrap_macos.sh
-./scripts/bootstrap_macos.sh
-```
-
-The script checks for local tools and creates lightweight build directories. It does not install dependencies automatically.
-
-## Repository docs
-
-- [Contributing guide](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
-- [Release checklist](docs/release-checklist.md)
-- [Project map](docs/00-project-map.md)
-- [Learning roadmap](docs/01-learning-roadmap.md)
-- [Ring buffer design](docs/ring-buffer-design.md)
-- [Memory ordering](docs/memory-ordering.md)
-- [Broker API](docs/broker-api.md)
-- [CLI guide](docs/cli-guide.md)
-- [Metrics and diagnostics](docs/metrics.md)
-- [Benchmark methodology](docs/benchmark-methodology.md)
-- [Performance results](docs/performance-results.md)
-- [Low-latency tuning](docs/low-latency-tuning.md)
-- [HFT-style design notes](docs/hft-design-notes.md)
-- [Memory-mapped file notes](docs/mmap-notes.md)
-- [WAL format](docs/wal-format.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md). Keep changes focused, run relevant checks, preserve benchmark honesty, and do not add new runtime features under Phase 13 documentation work.
 
 ## License
 
-MIT.
+Aether-Stream is licensed under the [MIT License](LICENSE).
+
+## Acknowledgements
+
+This project uses C++20, CMake, Ninja-compatible build flows, CTest, Google Benchmark, clang-format, clang-tidy, sanitizers, and GitHub Actions to demonstrate practical systems engineering habits around a deliberately scoped local message broker toolkit.
